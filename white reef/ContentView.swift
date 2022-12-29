@@ -20,11 +20,12 @@ struct ARViewContainer: UIViewRepresentable {
         
         let arView = ARView(frame: .zero)
         
-        // Load the "Box" scene from the "Experience" Reality File
-        let boxAnchor = try! Experience.loadBox()
+        let box = ModelEntity(mesh: .generateBox(size: 0.1), materials: [SimpleMaterial(color: .white, isMetallic: true)])
+        let anchor = AnchorEntity.init(plane: .any)
+        anchor.addChild(box)
         
         // Add the box anchor to the scene
-        arView.scene.anchors.append(boxAnchor)
+        arView.scene.anchors.append(anchor)
         
         return arView
         
