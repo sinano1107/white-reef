@@ -11,6 +11,7 @@ import ARKit
 
 struct ContentView : View {
     let arView = ARView(frame: .zero)
+    @AppStorage("ar-world-map") var arWorldMap = Data()
     @State var worldMappingStatus: ARFrame.WorldMappingStatus?
     
     var body: some View {
@@ -23,16 +24,43 @@ struct ContentView : View {
                     // raycast
                     let results = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any)
                     guard let first = results.first else { return }
-                    let anchor = AnchorEntity(raycastResult: first)
+                    
+                    let anchor = ARAnchor(name: "Box", transform: first.worldTransform)
+                    
+                    // これしないとAnchorEntity(anchor: anchor)は機能しない
+                    arView.session.add(anchor: anchor)
+                    let anchorEntity = AnchorEntity(anchor: anchor)
+                    
                     let box = ModelEntity(mesh: .generateBox(size: 0.1), materials: [SimpleMaterial(color: .cyan, isMetallic: true)])
                     // boxはそのままだと埋まってしまうので、半分高さを足す
                     box.setPosition([0, 0.05, 0], relativeTo: box)
-                    anchor.addChild(box)
-                    arView.scene.anchors.append(anchor)
+                    anchorEntity.addChild(box)
+                    arView.scene.anchors.append(anchorEntity)
                     #endif
                 }
-            Text(worldMappingStatus?.description ?? "nil")
-                .padding(18)
+            HStack {
+                Button("セーブ") {
+                    arView.session.getCurrentWorldMap { worldMap, error in
+                        guard let map = worldMap else { return }
+                        do {
+                            arWorldMap = try NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: true)
+                        } catch {
+                            fatalError("worldMapの保存に失敗しました: \(error)")
+                        }
+                    }
+                }
+                Button("ロード") {
+                    do {
+                        guard let worldMap = try NSKeyedUnarchiver.unarchivedObject(ofClass: ARWorldMap.self, from: arWorldMap)
+                        else { throw ARError(.invalidWorldMap) }
+                        print(worldMap.anchors)
+                    } catch {
+                        fatalError("worldMapの読み込みに失敗しました: \(error)")
+                    }
+                }
+                Text(worldMappingStatus?.description ?? "nil")
+            }
+            .padding()
         }
     }
 }
@@ -47,7 +75,7 @@ struct ARViewContainer: UIViewRepresentable {
     
     func makeUIView(context: Context) -> ARView {
         // LiDARによるポリゴンを可視化
-        // arView.debugOptions.insert(.showSceneUnderstanding)
+        arView.debugOptions.insert(.showSceneUnderstanding)
         // LiDARによるポリゴンでオブジェクトを隠す
         arView.environment.sceneUnderstanding.options.insert(.occlusion)
         // Coordinator
