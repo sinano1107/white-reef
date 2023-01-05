@@ -22,9 +22,15 @@ struct ContentView : View {
                     #if targetEnvironment(simulator)
                     #else
                     // raycast
-                    let results = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any)
-                    guard let first = results.first else { return }
+                    guard let first = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any).first
+                    else { return }
                     
+                    // 古いBoxAnchorを削除
+                    if let prevBoxAnchor = arView.session.currentFrame?.anchors.first(where: { $0.name == "Box" }) {
+                        arView.session.remove(anchor: prevBoxAnchor)
+                    }
+                    
+                    // 新しいBoxAnchorを生成
                     let anchor = ARAnchor(name: "Box", transform: first.worldTransform)
                     
                     // これしないとAnchorEntity(anchor: anchor)は機能しない
