@@ -110,7 +110,7 @@ struct PersistanceView: View {
     }
 }
 
-struct ARViewContainer: UIViewRepresentable {
+private struct ARViewContainer: UIViewRepresentable {
     let arView: ARView
     @Binding var worldMappingStatus: ARFrame.WorldMappingStatus?
     
