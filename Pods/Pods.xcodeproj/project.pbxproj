@@ -888,7 +888,7 @@
 		A8D0F5C9558581E456298A688813D622 /* FIRInteropParameterNames.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FIRInteropParameterNames.h; path = Interop/Analytics/Public/FIRInteropParameterNames.h; sourceTree = "<group>"; };
 		A8D128A68CC9F4370C77E0B0E6EC6A10 /* ARCore.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = ARCore.release.xcconfig; sourceTree = "<group>"; };
 		AB4B93B59F1FBF905848876F89444CD4 /* RCNConfigContent.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCNConfigContent.h; path = FirebaseRemoteConfig/Sources/RCNConfigContent.h; sourceTree = "<group>"; };
-		AB808D11BE796C14949E4B26A5A95A98 /* ARCore-ARCoreResources */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "ARCore-ARCoreResources"; path = ARCoreResources.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB808D11BE796C14949E4B26A5A95A98 /* ARCoreResources.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ARCoreResources.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		ABC181765CD63627D60730FB657CFE2D /* FirebaseRemoteConfig.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = FirebaseRemoteConfig.release.xcconfig; sourceTree = "<group>"; };
 		AC942021401877692DD213C7CB03389D /* GULHeartbeatDateStorable.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = GULHeartbeatDateStorable.h; path = GoogleUtilities/Environment/Public/GoogleUtilities/GULHeartbeatDateStorable.h; sourceTree = "<group>"; };
 		AD5F66AEB2AE17E7D758B6F41B1A790C /* FIRConfiguration.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FIRConfiguration.h; path = FirebaseCore/Sources/Public/FirebaseCore/FIRConfiguration.h; sourceTree = "<group>"; };
@@ -1710,7 +1710,7 @@
 		C4F9EB323DDEB5DF54325627F9A2AC74 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AB808D11BE796C14949E4B26A5A95A98 /* ARCore-ARCoreResources */,
+				AB808D11BE796C14949E4B26A5A95A98 /* ARCoreResources.bundle */,
 				7C3AE4425E7B08F16F1B4FD32951CA7F /* FirebaseABTesting */,
 				E2B63D462DB7F827C4B11FD51E4F8E2D /* FirebaseCore.framework */,
 				148D0F9E8C7373FEAF40D800FC5F1BAA /* FirebaseCoreInternal.framework */,
@@ -2387,7 +2387,7 @@
 			);
 			name = "ARCore-ARCoreResources";
 			productName = ARCoreResources;
-			productReference = AB808D11BE796C14949E4B26A5A95A98 /* ARCore-ARCoreResources */;
+			productReference = AB808D11BE796C14949E4B26A5A95A98 /* ARCoreResources.bundle */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -3099,6 +3099,7 @@
 			baseConfigurationReference = A8D128A68CC9F4370C77E0B0E6EC6A10 /* ARCore.release.xcconfig */;
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/ARCore";
+				DEVELOPMENT_TEAM = RYRF347865;
 				IBSC_MODULE = ARCore;
 				INFOPLIST_FILE = "Target Support Files/ARCore/ResourceBundle-ARCoreResources-ARCore-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -3422,6 +3423,7 @@
 			baseConfigurationReference = E71331413F91E67DD69C29491F7C8AC3 /* ARCore.debug.xcconfig */;
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/ARCore";
+				DEVELOPMENT_TEAM = RYRF347865;
 				IBSC_MODULE = ARCore;
 				INFOPLIST_FILE = "Target Support Files/ARCore/ResourceBundle-ARCoreResources-ARCore-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
