@@ -112,8 +112,11 @@ private struct ARViewContainer: UIViewRepresentable {
         }
         
         func checkVPSAvailabilityWithCoordinate(_ coordinate: CLLocationCoordinate2D) {
-            // TODO: checkVPSAvailabilityWithCoordinateの実装（setUpGARSessionの実装後）
-            print("checkVPSAvailabilityWithCoordinate()")
+            garSession?.checkVPSAvailability(coordinate: coordinate) { availability in
+                if availability != .available {
+                    self.parent.message = "VPSが利用できません"
+                }
+            }
         }
         
         func checkLocationPermission() {
