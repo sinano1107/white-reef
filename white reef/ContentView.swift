@@ -26,11 +26,17 @@ func setupARView(arView: ARView, worldMap: ARWorldMap? = nil) {
 }
 
 struct ContentView : View {
-    let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
+#if targetEnvironment(simulator)
+    private let arView = ARView(frame: .zero)
+#else
+    private let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
+#endif
     @AppStorage("ar-world-map") var arWorldMap = Data()
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus?
     
     private func putBox(anchor: ARAnchor) {
+#if targetEnvironment(simulator)
+#else
         // anchorEntity
         let anchorEntity = AnchorEntity(anchor: anchor)
         
@@ -45,6 +51,7 @@ struct ContentView : View {
         // add & append
         anchorEntity.addChild(boxEntity)
         arView.scene.addAnchor(anchorEntity)
+#endif
     }
     
     var body: some View {
@@ -52,8 +59,6 @@ struct ContentView : View {
             ARViewContainer(arView: arView, worldMappingStatus: $worldMappingStatus)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture(coordinateSpace: .global) { location in
-                    #if targetEnvironment(simulator)
-                    #else
                     // raycast
                     guard let first = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any).first
                     else { return }
@@ -69,7 +74,6 @@ struct ContentView : View {
                     arView.session.add(anchor: anchor)
                     // ボックスを設置
                     putBox(anchor: anchor)
-                    #endif
                 }
             HStack {
                 Button("セーブ") {
@@ -117,7 +121,7 @@ struct ARViewContainer: UIViewRepresentable {
     func makeUIView(context: Context) -> ARView {
         setupARView(arView: arView)
         // LiDARによるポリゴンを可視化
-//        arView.debugOptions.insert(.showSceneUnderstanding)
+        // arView.debugOptions.insert(.showSceneUnderstanding)
         // LiDARによるポリゴンでオブジェクトを隠す
         arView.environment.sceneUnderstanding.options.insert(.occlusion)
         // Coordinator
