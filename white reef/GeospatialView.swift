@@ -86,6 +86,7 @@ private struct ARViewContainer: UIViewRepresentable {
             self.parent = parent
         }
         
+        /// GARSessionをセットアップします
         func setUpGARSession() {
             // すでにGARSessionが作成されているならば離脱
             if garSession != nil { return }
@@ -122,6 +123,7 @@ private struct ARViewContainer: UIViewRepresentable {
             lastStartLocalizationDate = Date()
         }
         
+        /// 位置情報からVPSが利用可能かチェックします
         func checkVPSAvailabilityWithCoordinate(_ coordinate: CLLocationCoordinate2D) {
             garSession?.checkVPSAvailability(coordinate: coordinate) { availability in
                 if availability != .available {
@@ -130,6 +132,7 @@ private struct ARViewContainer: UIViewRepresentable {
             }
         }
         
+        /// 位置情報の権限をチェックします
         func checkLocationPermission() {
             let locationManager = parent.locationManager
             let authorizationStatus = locationManager.authorizationStatus
@@ -209,19 +212,23 @@ private struct ARViewContainer: UIViewRepresentable {
             updateLocalizationState(garFrame)
         }
         
+        /// 位置情報の許可が変更された時
         func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
             checkLocationPermission()
         }
         
+        /// 位置情報が更新された（移動した）時
         func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
             guard let location = locations.last else { return }
             checkVPSAvailabilityWithCoordinate(location.coordinate)
         }
         
+        /// 位置情報の取得に失敗した時
         func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
             parent.message = "locationの取得に失敗: \(error)"
         }
         
+        /// ARFrameが更新される度に実行される
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
             if localizationState == .failed { return }
             guard let garSession = garSession else { return }
