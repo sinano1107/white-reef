@@ -16,9 +16,16 @@ private let kOrientationYawAccuracyLowThreshold: CLLocationDirectionAccuracy = 1
 private let kOrientationYawAccuracyHighThreshold: CLLocationDirectionAccuracy = 25
 /// 十分な精度が得られない場合、アプリが諦めるまでの時間。
 private let kLocalizationFailureTime = 60.0 * 3
+private let kGeospatialTransformFormat =
+"""
+LAT/LONG（緯度/経度）: %.6f°, %.6f°\nACCURACY（精度）: %.2fm
+ALTITUDE（高度）: %.2fm\n    ACCURACY（精度）: %.2fm
+HEADING（方位）: %.1f°\n    ACCURACY（精度）: %.1f°
+"""
 
 struct GeospatialView: View {
     @State private var message: String?
+    @State private var trackingLabelText: String = ""
     
     var body: some View {
         let bindingMessage = Binding(
@@ -26,18 +33,25 @@ struct GeospatialView: View {
             set: { _ in message = nil }
         )
         
-        return ARViewContainer(message: $message)
-            .edgesIgnoringSafeArea(.all)
-            .alert("メッセージ", isPresented: bindingMessage) {
-                Button("OK") {}
-            } message: {
-                Text(message ?? "")
-            }
+        return ZStack(alignment: .topLeading) {
+            ARViewContainer(message: $message, trackingLabelText: $trackingLabelText)
+                .edgesIgnoringSafeArea(.all)
+                .alert("メッセージ", isPresented: bindingMessage) {
+                    Button("OK") {}
+                } message: {
+                    Text(message ?? "")
+                }
+            
+            Text(trackingLabelText)
+                .font(.caption)
+                .padding()
+        }
     }
 }
 
 private struct ARViewContainer: UIViewRepresentable {
     @Binding var message: String?
+    @Binding var trackingLabelText: String
     private let locationManager = CLLocationManager()
     
     func makeCoordinator() -> Coordinator {
@@ -204,12 +218,61 @@ private struct ARViewContainer: UIViewRepresentable {
                     }
                 }
             }
-            print(localizationState)
+        }
+        
+        /// earthStateを文字列に変換します
+        func stringFromGAREarthState(_ earthState: GAREarthState) -> String {
+            switch (earthState) {
+            case .errorInternal:
+                return "ERROR_INTERNAL"
+            case .errorNotAuthorized:
+                return "ERROR_NOT_AUTHORIZED"
+            case .errorResourceExhausted:
+                return "ERROR_RESOURCE_EXHAUSTED"
+            default:
+                return "ENABLED"
+            }
+        }
+        
+        /// トラッキングラベルを更新します
+        func updateTrackingLabel(_ garFrame: GARFrame) {
+            guard let earth = garFrame.earth else { return }
+            
+            if localizationState == .failed {
+                if earth.earthState != .enabled {
+                    let earthState = stringFromGAREarthState(earth.earthState)
+                    parent.trackingLabelText = "Bad Earthstate: \(earthState)"
+                } else {
+                    parent.trackingLabelText = ""
+                }
+                return
+            }
+            
+            if (earth.trackingState == .paused) {
+                parent.trackingLabelText = "Not tracking."
+                return
+            }
+            
+            // 現在トラッキング中で、かつ良好なEarthStateであれば、これはゼロにはなりえません。
+            guard let geospatialTransform = earth.cameraGeospatialTransform else { return }
+            
+            let cameraQuaternion = geospatialTransform.eastUpSouthQTarget
+            
+            // 注意：ここでの高度の値は、WGS84楕円体に対する相対値です（以下と同等）。|CLLocation.ellipsoidalAltitude|) に相当します。
+            parent.trackingLabelText = String.init(
+                format: kGeospatialTransformFormat,
+                geospatialTransform.coordinate.latitude, geospatialTransform.coordinate.longitude,
+                geospatialTransform.horizontalAccuracy, geospatialTransform.altitude,
+                geospatialTransform.verticalAccuracy, cameraQuaternion.vector[0],
+                cameraQuaternion.vector[1], cameraQuaternion.vector[2],
+                cameraQuaternion.vector[3], geospatialTransform.orientationYawAccuracy
+            )
         }
         
         /// 各種更新処理を実行します
         func updateWithGARFrame(_ garFrame: GARFrame) {
             updateLocalizationState(garFrame)
+            updateTrackingLabel(garFrame)
         }
         
         /// 位置情報の許可が変更された時
