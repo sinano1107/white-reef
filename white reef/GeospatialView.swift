@@ -10,6 +10,13 @@ import RealityKit
 import ARKit
 import ARCore
 
+private let kHorizontalAccuracyLowThreshold: CLLocationAccuracy = 10
+private let kHorizontalAccuracyHighThreshold: CLLocationAccuracy = 20
+private let kOrientationYawAccuracyLowThreshold: CLLocationDirectionAccuracy = 15
+private let kOrientationYawAccuracyHighThreshold: CLLocationDirectionAccuracy = 25
+/// 十分な精度が得られない場合、アプリが諦めるまでの時間。
+private let kLocalizationFailureTime = 60.0 * 3
+
 struct GeospatialView: View {
     @State private var message: String?
     
@@ -65,6 +72,8 @@ private struct ARViewContainer: UIViewRepresentable {
         var parent: ARViewContainer
         var garSession: GARSession?
         var localizationState: LocalizationState = .failed
+        /// ローカライズの試行を開始した最後の時間。失敗時のタイムアウトを実装するために使用します。
+        var lastStartLocalizationDate = Date()
         
         enum LocalizationState: Int {
             case pretracking = 0
@@ -109,6 +118,8 @@ private struct ARViewContainer: UIViewRepresentable {
             
             // localizationStateを.failedから.pretrackingへ変更
             localizationState = .pretracking
+            // laststartLocalizationStateへ現在時刻を代入
+            lastStartLocalizationDate = Date()
         }
         
         func checkVPSAvailabilityWithCoordinate(_ coordinate: CLLocationCoordinate2D) {
@@ -140,6 +151,64 @@ private struct ARViewContainer: UIViewRepresentable {
             }
         }
         
+        /// LocalizationStateを更新します
+        func updateLocalizationState(_ garFrame: GARFrame) {
+            // 現在トラッキングを行っていない場合はnilとなる
+            let geospatialTransform = garFrame.earth?.cameraGeospatialTransform
+            let now = Date()
+            
+            // earthStateが.enabled以外の場合は.failedに設定
+            if garFrame.earth?.earthState != .enabled {
+                localizationState = .failed
+            }
+            // trackingStateが.tracking以外の場合は.pretrackingに設定
+            else if garFrame.earth?.trackingState != .tracking {
+                localizationState = .pretracking
+            }
+            // earthStateが.enabled かつ trackingStateが.tracking の正常な場合の処理
+            else {
+                // 現在のlocalizationStateが.pretrackingの場合は.localizingに変更する
+                if localizationState == .pretracking {
+                    localizationState = .localizing
+                }
+                // 現在のlocalizationStateが.localizingの場合
+                else if localizationState == .localizing {
+                    // 精度が厳しめの閾値を下回った場合.lozalizedに設定
+                    if (
+                        geospatialTransform != nil
+                        && geospatialTransform!.horizontalAccuracy <= kHorizontalAccuracyLowThreshold
+                        && geospatialTransform!.orientationYawAccuracy <= kOrientationYawAccuracyLowThreshold
+                    ) {
+                        localizationState = .localized
+                    }
+                    // ローカライズの試行を開始してから指定時間経過していたら.failedに設定
+                    else if now.timeIntervalSince(lastStartLocalizationDate) >= kLocalizationFailureTime {
+                        localizationState = .failed
+                    }
+                }
+                // 現在のlocalizationStateが.localizedの場合
+                // （.failedの時はそもそもこの関数が呼ばれないため）
+                else {
+                    // 状態から抜け出す際に高いしきい値を使用することで、状態の変化がちらつくのを防ぐことができます。
+                    //　精度が緩めの閾値を上回った場合.lozalizingに設定し、lastStartLocalizationDateを現在時刻に更新
+                    if (
+                        geospatialTransform == nil
+                        || geospatialTransform!.horizontalAccuracy > kHorizontalAccuracyHighThreshold
+                        || geospatialTransform!.orientationYawAccuracy > kOrientationYawAccuracyHighThreshold
+                    ) {
+                        localizationState = .localizing
+                        lastStartLocalizationDate = now
+                    }
+                }
+            }
+            print(localizationState)
+        }
+        
+        /// 各種更新処理を実行します
+        func updateWithGARFrame(_ garFrame: GARFrame) {
+            updateLocalizationState(garFrame)
+        }
+        
         func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
             checkLocationPermission()
         }
@@ -153,7 +222,16 @@ private struct ARViewContainer: UIViewRepresentable {
             parent.message = "locationの取得に失敗: \(error)"
         }
         
-        func session(_ session: ARSession, didUpdate frame: ARFrame) {}
+        func session(_ session: ARSession, didUpdate frame: ARFrame) {
+            if localizationState == .failed { return }
+            guard let garSession = garSession else { return }
+            do {
+                let garFrame = try garSession.update(frame)
+                updateWithGARFrame(garFrame)
+            } catch {
+                parent.message = "garFrameのアップデートに失敗しました"
+            }
+        }
     }
 }
 
