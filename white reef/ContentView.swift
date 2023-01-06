@@ -9,10 +9,43 @@ import SwiftUI
 import RealityKit
 import ARKit
 
+func setupARView(arView: ARView, worldMap: ARWorldMap? = nil) {
+    let config = ARWorldTrackingConfiguration()
+    // LiDARによるシーンの再構築
+    config.sceneReconstruction = .mesh
+    // ワールドマップ
+    config.initialWorldMap = worldMap
+    // 環境テクスチャリング
+    config.environmentTexturing = .automatic
+    // run
+    arView.session.run(config, options: [
+        .resetTracking,
+        .removeExistingAnchors,
+        .resetSceneReconstruction
+    ])
+}
+
 struct ContentView : View {
-    let arView = ARView(frame: .zero)
+    let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
     @AppStorage("ar-world-map") var arWorldMap = Data()
-    @State var worldMappingStatus: ARFrame.WorldMappingStatus?
+    @State private var worldMappingStatus: ARFrame.WorldMappingStatus?
+    
+    private func putBox(anchor: ARAnchor) {
+        // anchorEntity
+        let anchorEntity = AnchorEntity(anchor: anchor)
+        
+        // boxEntity
+        let boxMesh = MeshResource.generateBox(size: 0.1)
+        let boxMaterial = SimpleMaterial(color: .cyan, isMetallic: true)
+        let boxEntity = ModelEntity(mesh: boxMesh, materials: [boxMaterial])
+        
+        // ボックスが埋まらないようにする
+        boxEntity.setPosition([0, 0.05, 0], relativeTo: boxEntity)
+        
+        // add & append
+        anchorEntity.addChild(boxEntity)
+        arView.scene.addAnchor(anchorEntity)
+    }
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -32,16 +65,10 @@ struct ContentView : View {
                     
                     // 新しいBoxAnchorを生成
                     let anchor = ARAnchor(name: "Box", transform: first.worldTransform)
-                    
                     // これしないとAnchorEntity(anchor: anchor)は機能しない
                     arView.session.add(anchor: anchor)
-                    let anchorEntity = AnchorEntity(anchor: anchor)
-                    
-                    let box = ModelEntity(mesh: .generateBox(size: 0.1), materials: [SimpleMaterial(color: .cyan, isMetallic: true)])
-                    // boxはそのままだと埋まってしまうので、半分高さを足す
-                    box.setPosition([0, 0.05, 0], relativeTo: box)
-                    anchorEntity.addChild(box)
-                    arView.scene.anchors.append(anchorEntity)
+                    // ボックスを設置
+                    putBox(anchor: anchor)
                     #endif
                 }
             HStack {
@@ -59,11 +86,19 @@ struct ContentView : View {
                     do {
                         guard let worldMap = try NSKeyedUnarchiver.unarchivedObject(ofClass: ARWorldMap.self, from: arWorldMap)
                         else { throw ARError(.invalidWorldMap) }
-                        print(worldMap.anchors)
+                        
+                        // リスタート
+                        setupARView(arView: arView, worldMap: worldMap)
+                        
+                        // ボックスを復元
+                        guard let anchor = worldMap.anchors.first(where: { $0.name == "Box" })
+                        else { return }
+                        putBox(anchor: anchor)
                     } catch {
                         fatalError("worldMapの読み込みに失敗しました: \(error)")
                     }
                 }
+                Spacer()
                 Text(worldMappingStatus?.description ?? "nil")
             }
             .padding()
@@ -80,8 +115,9 @@ struct ARViewContainer: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> ARView {
+        setupARView(arView: arView)
         // LiDARによるポリゴンを可視化
-        arView.debugOptions.insert(.showSceneUnderstanding)
+//        arView.debugOptions.insert(.showSceneUnderstanding)
         // LiDARによるポリゴンでオブジェクトを隠す
         arView.environment.sceneUnderstanding.options.insert(.occlusion)
         // Coordinator
