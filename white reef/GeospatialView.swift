@@ -10,14 +10,27 @@ import RealityKit
 import ARKit
 
 struct GeospatialView: View {
+    @State private var message: String?
+    
     var body: some View {
-        ARViewContainer()
+        let bindingMessage = Binding(
+            get: { message != nil },
+            set: { _ in message = nil }
+        )
+        
+        return ARViewContainer(message: $message)
             .edgesIgnoringSafeArea(.all)
+            .alert("メッセージ", isPresented: bindingMessage) {
+                Button("OK") {}
+            } message: {
+                Text(message ?? "")
+            }
     }
 }
 
 private struct ARViewContainer: UIViewRepresentable {
-    let locationManager = CLLocationManager()
+    @Binding var message: String?
+    private let locationManager = CLLocationManager()
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -67,10 +80,9 @@ private struct ARViewContainer: UIViewRepresentable {
         func checkLocationPermission() {
             let locationManager = parent.locationManager
             let authorizationStatus = locationManager.authorizationStatus
-            print(authorizationStatus.hashValue)
             if authorizationStatus == .authorizedAlways || authorizationStatus == .authorizedWhenInUse {
                 if locationManager.accuracyAuthorization != .fullAccuracy {
-                    fatalError("位置情報は完全な精度で許可されたものではありません。")
+                    parent.message = "位置情報は完全な精度で許可されたものではありません"
                 }
                 
 #if targetEnvironment(simulator)
@@ -82,7 +94,7 @@ private struct ARViewContainer: UIViewRepresentable {
             } else if authorizationStatus == .notDetermined {
                 locationManager.requestWhenInUseAuthorization()
             } else {
-                print("位置情報の取得が拒否または制限されている")
+                parent.message = "位置情報の取得が拒否または制限されている"
             }
         }
         
@@ -96,7 +108,7 @@ private struct ARViewContainer: UIViewRepresentable {
         }
         
         func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-            print("locationの取得に失敗: \(error)")
+            parent.message = "locationの取得に失敗: \(error)"
         }
         
         func session(_ session: ARSession, didUpdate frame: ARFrame) {}
