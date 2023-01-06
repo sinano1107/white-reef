@@ -8,6 +8,7 @@
 import SwiftUI
 import RealityKit
 import ARKit
+import ARCore
 
 struct GeospatialView: View {
     @State private var message: String?
@@ -62,14 +63,52 @@ private struct ARViewContainer: UIViewRepresentable {
     
     class Coordinator: NSObject, CLLocationManagerDelegate, ARSessionDelegate {
         var parent: ARViewContainer
+        var garSession: GARSession?
+        var localizationState: LocalizationState = .failed
+        
+        enum LocalizationState: Int {
+            case pretracking = 0
+            case localizing = 1
+            case localized = 2
+            case failed = -1
+        }
         
         init(_ parent: ARViewContainer) {
             self.parent = parent
         }
         
         func setUpGARSession() {
-            // TODO: setUpARSessionの実装
-            print("setUpGARSession()")
+            // すでにGARSessionが作成されているならば離脱
+            if garSession != nil { return }
+            
+            // garSessionを作成
+            do {
+                garSession = try GARSession(apiKey: apiKey, bundleIdentifier: nil)
+            } catch {
+                parent.message = "GARSessionの作成に失敗しました: \(error)"
+                return
+            }
+            
+            // GeospatialModeがサポートされているか確認
+            if !garSession!.isGeospatialModeSupported(.enabled) {
+                parent.message = "GARGeospatialModeEnabled は、このデバイスではサポートされていません"
+                return
+            }
+            
+            // config
+            let config = GARSessionConfiguration()
+            config.geospatialMode = .enabled
+            
+            // configをセット
+            var error: NSError?
+            garSession!.setConfiguration(config, error: &error)
+            if (error != nil) {
+                parent.message = "GARSessionのコンフィグレーションに失敗しました: \(error!.code)"
+                return
+            }
+            
+            // localizationStateを.failedから.pretrackingへ変更
+            localizationState = .pretracking
         }
         
         func checkVPSAvailabilityWithCoordinate(_ coordinate: CLLocationCoordinate2D) {

@@ -14,6 +14,7 @@
 		9F43CEFD295D982B00ABB3B0 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F43CEFC295D982B00ABB3B0 /* Preview Assets.xcassets */; };
 		9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */; };
 		9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */; };
+		9FE08C382968427100665752 /* APIKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FE08C372968427100665752 /* APIKey.swift */; };
 		9FEF2B9029607B9700EF759E /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEF2B8F29607B9700EF759E /* Utilities.swift */; };
 /* End PBXBuildFile section */
 
@@ -27,6 +28,7 @@
 		9F43CEFC295D982B00ABB3B0 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistanceView.swift; sourceTree = "<group>"; };
 		9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialView.swift; sourceTree = "<group>"; };
+		9FE08C372968427100665752 /* APIKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKey.swift; sourceTree = "<group>"; };
 		9FEF2B8F29607B9700EF759E /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		AA02404073FC7D5BADBF99A1 /* Pods-white reef.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-white reef.debug.xcconfig"; path = "Target Support Files/Pods-white reef/Pods-white reef.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -86,6 +88,7 @@
 				9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */,
 				9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */,
 				9FEF2B8F29607B9700EF759E /* Utilities.swift */,
+				9FE08C372968427100665752 /* APIKey.swift */,
 				9F43CEF9295D982B00ABB3B0 /* Assets.xcassets */,
 				9F43CEFB295D982B00ABB3B0 /* Preview Content */,
 			);
@@ -236,6 +239,7 @@
 				9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */,
 				9FEF2B9029607B9700EF759E /* Utilities.swift in Sources */,
 				9F43CEF6295D982A00ABB3B0 /* ContentView.swift in Sources */,
+				9FE08C382968427100665752 /* APIKey.swift in Sources */,
 				9F43CEF4295D982A00ABB3B0 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
