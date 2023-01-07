@@ -26,6 +26,7 @@ HEADING（方位）: %.1f°\n    ACCURACY（精度）: %.1f°
 struct GeospatialView: View {
     @State private var message: String?
     @State private var trackingLabelText: String = ""
+    @State private var statusLabel: String = ""
     
     var body: some View {
         let bindingMessage = Binding(
@@ -33,8 +34,8 @@ struct GeospatialView: View {
             set: { _ in message = nil }
         )
         
-        return ZStack(alignment: .topLeading) {
-            ARViewContainer(message: $message, trackingLabelText: $trackingLabelText)
+        return ZStack(alignment: .leading) {
+            ARViewContainer(message: $message, trackingLabelText: $trackingLabelText, statusLabel: $statusLabel)
                 .edgesIgnoringSafeArea(.all)
                 .alert("メッセージ", isPresented: bindingMessage) {
                     Button("OK") {}
@@ -42,9 +43,13 @@ struct GeospatialView: View {
                     Text(message ?? "")
                 }
             
-            Text(trackingLabelText)
-                .font(.caption)
-                .padding()
+            VStack(alignment: .leading) {
+                Text(trackingLabelText)
+                    .font(.caption)
+                Spacer()
+                Text(statusLabel)
+            }
+            .padding()
         }
     }
 }
@@ -52,6 +57,7 @@ struct GeospatialView: View {
 private struct ARViewContainer: UIViewRepresentable {
     @Binding var message: String?
     @Binding var trackingLabelText: String
+    @Binding var statusLabel: String
     private let locationManager = CLLocationManager()
     
     func makeCoordinator() -> Coordinator {
@@ -269,10 +275,25 @@ private struct ARViewContainer: UIViewRepresentable {
             )
         }
         
+        /// ステータスラベルを更新します
+        func updateStatusLabel(_ garFrame: GARFrame) {
+            switch (localizationState) {
+            case .localized:
+                parent.statusLabel = "ローカライズ完了"
+            case .pretracking:
+                parent.statusLabel = "ローカライズします"
+            case .localizing:
+                parent.statusLabel = "身近な建物やお店、看板などにカメラを向けてみましょう"
+            case .failed:
+                parent.statusLabel = "ローカライズに失敗しました"
+            }
+        }
+        
         /// 各種更新処理を実行します
         func updateWithGARFrame(_ garFrame: GARFrame) {
             updateLocalizationState(garFrame)
             updateTrackingLabel(garFrame)
+            updateStatusLabel(garFrame)
         }
         
         /// 位置情報の許可が変更された時
