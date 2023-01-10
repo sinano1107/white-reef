@@ -7,20 +7,30 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		069C7E0F01C0133E9918CE51 /* Pods_white_reef.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9308A1DB5CFFB174EA0E3FEA /* Pods_white_reef.framework */; };
 		9F43CEF4295D982A00ABB3B0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F43CEF3295D982A00ABB3B0 /* AppDelegate.swift */; };
 		9F43CEF6295D982A00ABB3B0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F43CEF5295D982A00ABB3B0 /* ContentView.swift */; };
 		9F43CEFA295D982B00ABB3B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F43CEF9295D982B00ABB3B0 /* Assets.xcassets */; };
 		9F43CEFD295D982B00ABB3B0 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F43CEFC295D982B00ABB3B0 /* Preview Assets.xcassets */; };
+		9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */; };
+		9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */; };
+		9FE08C382968427100665752 /* APIKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FE08C372968427100665752 /* APIKey.swift */; };
 		9FEF2B9029607B9700EF759E /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEF2B8F29607B9700EF759E /* Utilities.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		63060890E5B2680F9473DB3C /* Pods-white reef.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-white reef.release.xcconfig"; path = "Target Support Files/Pods-white reef/Pods-white reef.release.xcconfig"; sourceTree = "<group>"; };
+		9308A1DB5CFFB174EA0E3FEA /* Pods_white_reef.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_white_reef.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F43CEF0295D982A00ABB3B0 /* white reef.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "white reef.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F43CEF3295D982A00ABB3B0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9F43CEF5295D982A00ABB3B0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		9F43CEF9295D982B00ABB3B0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9F43CEFC295D982B00ABB3B0 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistanceView.swift; sourceTree = "<group>"; };
+		9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialView.swift; sourceTree = "<group>"; };
+		9FE08C372968427100665752 /* APIKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKey.swift; sourceTree = "<group>"; };
 		9FEF2B8F29607B9700EF759E /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		AA02404073FC7D5BADBF99A1 /* Pods-white reef.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-white reef.debug.xcconfig"; path = "Target Support Files/Pods-white reef/Pods-white reef.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -28,17 +38,37 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				069C7E0F01C0133E9918CE51 /* Pods_white_reef.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2942299F80A542BBCEF50A33 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				AA02404073FC7D5BADBF99A1 /* Pods-white reef.debug.xcconfig */,
+				63060890E5B2680F9473DB3C /* Pods-white reef.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		4E98D27E7A992B3FF7C7449A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				9308A1DB5CFFB174EA0E3FEA /* Pods_white_reef.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		9F43CEE7295D982A00ABB3B0 = {
 			isa = PBXGroup;
 			children = (
 				9F43CEF2295D982A00ABB3B0 /* white reef */,
 				9F43CEF1295D982A00ABB3B0 /* Products */,
+				2942299F80A542BBCEF50A33 /* Pods */,
+				4E98D27E7A992B3FF7C7449A /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -55,7 +85,10 @@
 			children = (
 				9F43CEF3295D982A00ABB3B0 /* AppDelegate.swift */,
 				9F43CEF5295D982A00ABB3B0 /* ContentView.swift */,
+				9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */,
+				9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */,
 				9FEF2B8F29607B9700EF759E /* Utilities.swift */,
+				9FE08C372968427100665752 /* APIKey.swift */,
 				9F43CEF9295D982B00ABB3B0 /* Assets.xcassets */,
 				9F43CEFB295D982B00ABB3B0 /* Preview Content */,
 			);
@@ -77,9 +110,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9F43CF00295D982B00ABB3B0 /* Build configuration list for PBXNativeTarget "white reef" */;
 			buildPhases = (
+				0F18BB79BF507F58EE5582A9 /* [CP] Check Pods Manifest.lock */,
 				9F43CEEC295D982A00ABB3B0 /* Sources */,
 				9F43CEED295D982A00ABB3B0 /* Frameworks */,
 				9F43CEEE295D982A00ABB3B0 /* Resources */,
+				738C2097FA32FDA213DDC53C /* [CP] Embed Pods Frameworks */,
+				37D09EDD88981874A18937F0 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -135,13 +171,75 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		0F18BB79BF507F58EE5582A9 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-white reef-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		37D09EDD88981874A18937F0 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-white reef/Pods-white reef-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-white reef/Pods-white reef-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-white reef/Pods-white reef-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		738C2097FA32FDA213DDC53C /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-white reef/Pods-white reef-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-white reef/Pods-white reef-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-white reef/Pods-white reef-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		9F43CEEC295D982A00ABB3B0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */,
+				9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */,
 				9FEF2B9029607B9700EF759E /* Utilities.swift in Sources */,
 				9F43CEF6295D982A00ABB3B0 /* ContentView.swift in Sources */,
+				9FE08C382968427100665752 /* APIKey.swift in Sources */,
 				9F43CEF4295D982A00ABB3B0 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -265,6 +363,7 @@
 		};
 		9F43CF01295D982B00ABB3B0 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AA02404073FC7D5BADBF99A1 /* Pods-white reef.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -275,6 +374,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "位置情報が必要です";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arkit;
@@ -297,6 +397,7 @@
 		};
 		9F43CF02295D982B00ABB3B0 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 63060890E5B2680F9473DB3C /* Pods-white reef.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -307,6 +408,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "位置情報が必要です";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arkit;
