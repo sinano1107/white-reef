@@ -24,9 +24,44 @@ HEADING（方位）: %.1f°\n    ACCURACY（精度）: %.1f°
 """
 
 struct GeospatialView: View {
+#if targetEnvironment(simulator)
+    private let arView = ARView(frame: .zero)
+#else
+    private let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
+#endif
+    @State private var garSession: GARSession?
     @State private var message: String?
     @State private var trackingLabelText: String = ""
     @State private var statusLabel: String = ""
+    
+    /// 緯度軽度諸々の情報を受け取りボックスをおく
+    func addAnchorWithCoordinate(coordinate: CLLocationCoordinate2D, altitude: CLLocationDistance, eastUpSouthQTarget: simd_quatf, boxColor: UIColor) {
+        guard let garSession = garSession else { return }
+        
+        do {
+            let garAnchor = try garSession.createAnchor(coordinate: coordinate, altitude: altitude, eastUpSouthQAnchor: eastUpSouthQTarget)
+            guard garAnchor.hasValidTransform else { return }
+            
+            let arAnchor = ARAnchor(transform: garAnchor.transform)
+            arView.session.add(anchor: arAnchor)
+            
+            let anchorEntity = AnchorEntity(anchor: arAnchor)
+            
+            let boxMesh = MeshResource.generateBox(size: 0.1)
+            let boxMaterial = SimpleMaterial(color: boxColor, isMetallic: true)
+            let boxEntity = ModelEntity(mesh: boxMesh, materials: [boxMaterial])
+
+            // ボックスが埋まらないようにする
+            boxEntity.setPosition([0, 0.05, 0], relativeTo: boxEntity)
+
+            // add & append
+            anchorEntity.addChild(boxEntity)
+            arView.scene.addAnchor(anchorEntity)
+        } catch {
+            message = "アンカーの追加に失敗"
+            return
+        }
+    }
     
     var body: some View {
         let bindingMessage = Binding(
@@ -35,26 +70,87 @@ struct GeospatialView: View {
         )
         
         return ZStack(alignment: .leading) {
-            ARViewContainer(message: $message, trackingLabelText: $trackingLabelText, statusLabel: $statusLabel)
+            ARViewContainer(
+                arView: arView,
+                garSession: $garSession,
+                message: $message,
+                trackingLabelText: $trackingLabelText,
+                statusLabel: $statusLabel
+            )
                 .edgesIgnoringSafeArea(.all)
-                .alert("メッセージ", isPresented: bindingMessage) {
-                    Button("OK") {}
-                } message: {
-                    Text(message ?? "")
+                .onTapGesture(coordinateSpace: .global) { location in
+                    guard let garSession = garSession else { return }
+                    guard let first = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .horizontal).first
+                    else { return }
+                    
+                    do {
+                        let geospatialTransform = try garSession.geospatialTransform(transform: first.worldTransform)
+                        addAnchorWithCoordinate(coordinate: geospatialTransform.coordinate, altitude: geospatialTransform.altitude, eastUpSouthQTarget: geospatialTransform.eastUpSouthQTarget, boxColor: .red)
+                        
+                        let defaults = UserDefaults.standard
+                        
+                        let data: [String: NSNumber] = [
+                            "latitude": NSNumber(value: geospatialTransform.coordinate.latitude),
+                            "longitude": NSNumber(value: geospatialTransform.coordinate.longitude),
+                            "altitude": NSNumber(value: geospatialTransform.altitude),
+                            "x": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[0]),
+                            "y": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[1]),
+                            "z": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[2]),
+                            "w": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[3])
+                        ]
+                        defaults.set(data, forKey: "anchor")
+                    } catch {
+                        message = "geospatialAnchorの生成に失敗しました"
+                        return
+                    }
                 }
             
             VStack(alignment: .leading) {
                 Text(trackingLabelText)
                     .font(.caption)
                 Spacer()
-                Text(statusLabel)
+                HStack {
+                    Text(statusLabel)
+                    Button("ロードして復元") {
+                        let defaults = UserDefaults.standard
+                        guard let savedAnchor = defaults.object(forKey: "anchor") as? [String: NSNumber]
+                        else { return }
+                        
+                        let latitude: CLLocationDegrees = savedAnchor["latitude"]!.doubleValue
+                        let longitude: CLLocationDegrees = savedAnchor["longitude"]!.doubleValue
+                        let eastUpSourceQTarget = simd_quaternion(
+                            savedAnchor["x"]!.floatValue,
+                            savedAnchor["y"]!.floatValue,
+                            savedAnchor["z"]!.floatValue,
+                            savedAnchor["w"]!.floatValue
+                        )
+                        let altitude: CLLocationDistance = savedAnchor["altitude"]!.doubleValue
+                        
+                        addAnchorWithCoordinate(
+                            coordinate: CLLocationCoordinate2D(
+                                latitude: latitude,
+                                longitude: longitude
+                            ),
+                            altitude: altitude,
+                            eastUpSouthQTarget: eastUpSourceQTarget,
+                            boxColor: .white
+                        )
+                    }
+                }
             }
             .padding()
+        }
+        .alert("メッセージ", isPresented: bindingMessage) {
+            Button("OK") {}
+        } message: {
+            Text(message ?? "")
         }
     }
 }
 
 private struct ARViewContainer: UIViewRepresentable {
+    let arView: ARView
+    @Binding var garSession: GARSession?
     @Binding var message: String?
     @Binding var trackingLabelText: String
     @Binding var statusLabel: String
@@ -65,11 +161,6 @@ private struct ARViewContainer: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> ARView {
-#if targetEnvironment(simulator)
-        let arView = ARView(frame: .zero)
-#else
-        let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
-#endif
         let config = ARWorldTrackingConfiguration()
         
         // 座標系を設定
@@ -90,7 +181,7 @@ private struct ARViewContainer: UIViewRepresentable {
     
     class Coordinator: NSObject, CLLocationManagerDelegate, ARSessionDelegate {
         var parent: ARViewContainer
-        var garSession: GARSession?
+        // var garSession: GARSession?
         var localizationState: LocalizationState = .failed
         /// ローカライズの試行を開始した最後の時間。失敗時のタイムアウトを実装するために使用します。
         var lastStartLocalizationDate = Date()
@@ -109,18 +200,21 @@ private struct ARViewContainer: UIViewRepresentable {
         /// GARSessionをセットアップします
         func setUpGARSession() {
             // すでにGARSessionが作成されているならば離脱
-            if garSession != nil { return }
+            if parent.garSession != nil { return }
             
             // garSessionを作成
             do {
-                garSession = try GARSession(apiKey: apiKey, bundleIdentifier: nil)
+                parent.garSession = try GARSession(apiKey: apiKey, bundleIdentifier: nil)
             } catch {
                 parent.message = "GARSessionの作成に失敗しました: \(error)"
                 return
             }
             
+            // parent.garSessionをアンラップ
+            guard let garSession = parent.garSession else { return }
+            
             // GeospatialModeがサポートされているか確認
-            if !garSession!.isGeospatialModeSupported(.enabled) {
+            if !garSession.isGeospatialModeSupported(.enabled) {
                 parent.message = "GARGeospatialModeEnabled は、このデバイスではサポートされていません"
                 return
             }
@@ -131,7 +225,7 @@ private struct ARViewContainer: UIViewRepresentable {
             
             // configをセット
             var error: NSError?
-            garSession!.setConfiguration(config, error: &error)
+            garSession.setConfiguration(config, error: &error)
             if (error != nil) {
                 parent.message = "GARSessionのコンフィグレーションに失敗しました: \(error!.code)"
                 return
@@ -145,7 +239,7 @@ private struct ARViewContainer: UIViewRepresentable {
         
         /// 位置情報からVPSが利用可能かチェックします
         func checkVPSAvailabilityWithCoordinate(_ coordinate: CLLocationCoordinate2D) {
-            garSession?.checkVPSAvailability(coordinate: coordinate) { availability in
+            parent.garSession?.checkVPSAvailability(coordinate: coordinate) { availability in
                 if availability != .available {
                     self.parent.message = "VPSが利用できません"
                 }
@@ -315,7 +409,7 @@ private struct ARViewContainer: UIViewRepresentable {
         /// ARFrameが更新される度に実行される
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
             if localizationState == .failed { return }
-            guard let garSession = garSession else { return }
+            guard let garSession = parent.garSession else { return }
             do {
                 let garFrame = try garSession.update(frame)
                 updateWithGARFrame(garFrame)
