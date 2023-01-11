@@ -10,6 +10,8 @@ import RealityKit
 import ARKit
 import ARCore
 
+private var arView = ARView(frame: .zero)
+
 private let kHorizontalAccuracyLowThreshold: CLLocationAccuracy = 10
 private let kHorizontalAccuracyHighThreshold: CLLocationAccuracy = 20
 private let kOrientationYawAccuracyLowThreshold: CLLocationDirectionAccuracy = 15
@@ -24,11 +26,6 @@ HEADING（方位）: %.1f°\n    ACCURACY（精度）: %.1f°
 """
 
 struct GeospatialView: View {
-#if targetEnvironment(simulator)
-    private let arView = ARView(frame: .zero)
-#else
-    private let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
-#endif
     @State private var garSession: GARSession?
     @State private var message: String?
     @State private var trackingLabelText: String = ""
@@ -74,7 +71,6 @@ struct GeospatialView: View {
         
         return ZStack(alignment: .leading) {
             ARViewContainer(
-                arView: arView,
                 garSession: $garSession,
                 message: $message,
                 trackingLabelText: $trackingLabelText,
@@ -148,11 +144,13 @@ struct GeospatialView: View {
         } message: {
             Text(message ?? "")
         }
+        .onDisappear {
+            arView.session.pause()
+        }
     }
 }
 
 private struct ARViewContainer: UIViewRepresentable {
-    let arView: ARView
     @Binding var garSession: GARSession?
     @Binding var message: String?
     @Binding var trackingLabelText: String
@@ -164,6 +162,10 @@ private struct ARViewContainer: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> ARView {
+#if targetEnvironment(simulator)
+#else
+        arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
+        
         let config = ARWorldTrackingConfiguration()
         
         // 座標系を設定
@@ -177,6 +179,7 @@ private struct ARViewContainer: UIViewRepresentable {
         arView.session.delegate = context.coordinator
         arView.session.run(config)
         
+#endif
         return arView
     }
     

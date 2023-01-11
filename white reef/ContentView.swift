@@ -13,18 +13,18 @@ struct ContentView : View {
     var body: some View {
         NavigationView {
             VStack {
-                NavigationLink {
-                    PersistanceView()
-                } label: {
-                    Text("PersistanceView")
-                }
-                .padding(.bottom)
-
 //                NavigationLink {
-//                    GeospatialView()
+//                    PersistanceView()
 //                } label: {
-//                    Text("GeospatialView")
+//                    Text("PersistanceView")
 //                }
+//                .padding(.bottom)
+
+                NavigationLink {
+                    GeospatialView()
+                } label: {
+                    Text("GeospatialView")
+                }
             }
             .navigationTitle("White Reef")
         }

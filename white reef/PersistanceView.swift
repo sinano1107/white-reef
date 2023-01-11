@@ -119,6 +119,8 @@ private struct ARViewContainer: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> ARView {
+#if targetEnvironment(simulator)
+#else
         // arViewの初期化
         arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
         // セットアップ
@@ -130,6 +132,7 @@ private struct ARViewContainer: UIViewRepresentable {
 
         // Coordinator
         arView.session.delegate = context.coordinator
+#endif
         return arView
     }
     
