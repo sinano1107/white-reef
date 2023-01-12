@@ -36,39 +36,29 @@ struct PersistanceView: View {
         // raycast
         guard let first = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any).first
         else { return }
-        
-        // 古いBoxAnchorを削除
-        if let prevBoxAnchor = arView.session.currentFrame?.anchors.first(where: { $0.name == "Box" }) {
-            arView.session.remove(anchor: prevBoxAnchor)
-        }
-        
-        // 新しいBoxAnchorを生成
-        let anchor = ARAnchor(name: "Box", transform: first.worldTransform)
-        // これしないとAnchorEntity(anchor: anchor)は機能しない
-        arView.session.add(anchor: anchor)
-        // ボックスを設置
-        putBox(anchor: anchor)
+        // anchor
+        let anchor = generateTetrahedronAnchor(transform: first.worldTransform)
+        putTetrahedron(anchor: anchor)
     }
     
-    /// Boxを設置する
-    private func putBox(anchor: ARAnchor) {
-#if targetEnvironment(simulator)
-#else
-        // anchorEntity
+    /// 四面体を設置する
+    private func putTetrahedron(anchor: EntitySaveAnchor) {
+        #if targetEnvironment(simulator)
+        #else
+        // entityの生成
+        guard let mesh = anchor.generateMeshResource() else { return }
+        let material = SimpleMaterial(color: .cyan, isMetallic: true)
+        let entity = ModelEntity(mesh: mesh, materials: [material])
+        // ポジション・スケールを調整
+        entity.setPosition([0, 0.3, 0], relativeTo: entity)
+        entity.setScale([0.25, 0.25, 0.25], relativeTo: entity)
+        // anchorEntityにentityを追加
         let anchorEntity = AnchorEntity(anchor: anchor)
-        
-        // boxEntity
-        let boxMesh = MeshResource.generateBox(size: 0.1)
-        let boxMaterial = SimpleMaterial(color: .cyan, isMetallic: true)
-        let boxEntity = ModelEntity(mesh: boxMesh, materials: [boxMaterial])
-        
-        // ボックスが埋まらないようにする
-        boxEntity.setPosition([0, 0.05, 0], relativeTo: boxEntity)
-        
-        // add & append
-        anchorEntity.addChild(boxEntity)
+        anchorEntity.addChild(entity)
+        // anchor, anchorEntityを追加
+        arView.session.add(anchor: anchor)
         arView.scene.addAnchor(anchorEntity)
-#endif
+        #endif
     }
     
     /// ARWorldMapを保存する
@@ -78,7 +68,7 @@ struct PersistanceView: View {
             do {
                 arWorldMap = try NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: true)
             } catch {
-                fatalError("worldMapの保存に失敗しました: \(error)")
+                fatalError("[エラー] worldMapの保存に失敗しました: \(error)")
             }
         }
     }
@@ -86,18 +76,18 @@ struct PersistanceView: View {
     /// ARWorldMapをロードしてBoxを復元する
     private func load() {
         do {
+            // worldMapの読み込み
             guard let worldMap = try NSKeyedUnarchiver.unarchivedObject(ofClass: ARWorldMap.self, from: arWorldMap)
             else { throw ARError(.invalidWorldMap) }
-            
             // リスタート
             setupARView(worldMap: worldMap)
-            
-            // ボックスを復元
-            guard let anchor = worldMap.anchors.first(where: { $0.name == "Box" })
-            else { return }
-            putBox(anchor: anchor)
+            // EntitySaveAnchorの再構築
+            for anchor in worldMap.anchors {
+                guard let anchor = anchor as? EntitySaveAnchor else { continue }
+                putTetrahedron(anchor: anchor)
+            }
         } catch {
-            fatalError("worldMapの読み込みに失敗しました: \(error)")
+            fatalError("[エラー] worldMapの読み込みに失敗しました: \(error)")
         }
     }
     
@@ -132,9 +122,9 @@ private struct ARViewContainer: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> ARView {
-#if targetEnvironment(simulator)
+        #if targetEnvironment(simulator)
         return ARView(frame: .zero)
-#else
+        #else
         // arViewの初期化
         arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
         // セットアップ
@@ -145,7 +135,7 @@ private struct ARViewContainer: UIViewRepresentable {
         arView.environment.sceneUnderstanding.options.insert(.occlusion)
         arView.session.delegate = context.coordinator
         return arView
-#endif
+        #endif
     }
     
     func updateUIView(_ arView: ARView, context: Context) {}
