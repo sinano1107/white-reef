@@ -23,3 +23,24 @@ extension ARFrame.WorldMappingStatus: CustomStringConvertible {
         }
     }
 }
+
+extension ARCamera.TrackingState: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .normal:
+            return "Normal（ノーマル）"
+        case .notAvailable:
+            return "Not Availbale（入手不可能）"
+        case .limited(.initializing):
+            return "Initializing（初期化中）"
+        case .limited(.excessiveMotion):
+            return "Excessive Motion（過度な動作）"
+        case .limited(.insufficientFeatures):
+            return "Insufficient Features（特徴点の不足）"
+        case .limited(.relocalizing):
+            return "Relocalizing（再ローカライズ中）"
+        case .limited:
+            return "Unspecified Reason（理由なし）"
+        }
+    }
+}

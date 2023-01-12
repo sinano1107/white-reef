@@ -11,6 +11,7 @@ import ARKit
 
 /// configを設定しarVIewを起動します
 func setupARView(worldMap: ARWorldMap? = nil) {
+    arView.scene.anchors.removeAll()
     // config
     let config = ARWorldTrackingConfiguration()
     // LiDARによるシーンの再構築
@@ -27,9 +28,60 @@ func setupARView(worldMap: ARWorldMap? = nil) {
     ])
 }
 
+/// 四面体を設置する
+private func putTetrahedron(anchor: EntitySaveAnchor) {
+    #if targetEnvironment(simulator)
+    #else
+    // entityの生成
+    guard let mesh = anchor.generateMeshResource() else { return }
+    let material = SimpleMaterial(color: .cyan, isMetallic: true)
+    let entity = ModelEntity(mesh: mesh, materials: [material])
+    // ポジション・スケールを調整
+    entity.setPosition([0, 0.3, 0], relativeTo: entity)
+    entity.setScale([0.25, 0.25, 0.25], relativeTo: entity)
+    // anchorEntityにentityを追加
+    let anchorEntity = AnchorEntity(anchor: anchor)
+    anchorEntity.addChild(entity)
+    // anchor, anchorEntityを追加
+    arView.session.add(anchor: anchor)
+    arView.scene.addAnchor(anchorEntity)
+    #endif
+}
+
 struct PersistanceView: View {
     @AppStorage("ar-world-map") private var arWorldMap = Data()
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus?
+    @State private var cameraTrackingState: ARCamera.TrackingState?
+    @State private var entitySaveAnchors: [EntitySaveAnchor] = []
+    
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            ARViewContainer(
+                worldMappingStatus: $worldMappingStatus,
+                cameraTrackingStatus: $cameraTrackingState,
+                entitySaveAnchors: $entitySaveAnchors
+            )
+                .edgesIgnoringSafeArea(.all)
+                .onTapGesture(coordinateSpace: .global, perform: onTapGesture(location:))
+            HStack {
+                Button("セーブ") {
+                    save()
+                }
+                Button("ロード") {
+                    load()
+                }
+                Spacer()
+                VStack {
+                    Text(worldMappingStatus?.description ?? "nil")
+                    Text(cameraTrackingState?.description ?? "nil")
+                }
+            }
+            .padding()
+        }
+        .onDisappear {
+            arView.session.pause()
+        }
+    }
     
     /// タップした場所にBoxを設置する
     private func onTapGesture(location: CGPoint) {
@@ -39,26 +91,6 @@ struct PersistanceView: View {
         // anchor
         let anchor = generateTetrahedronAnchor(transform: first.worldTransform)
         putTetrahedron(anchor: anchor)
-    }
-    
-    /// 四面体を設置する
-    private func putTetrahedron(anchor: EntitySaveAnchor) {
-        #if targetEnvironment(simulator)
-        #else
-        // entityの生成
-        guard let mesh = anchor.generateMeshResource() else { return }
-        let material = SimpleMaterial(color: .cyan, isMetallic: true)
-        let entity = ModelEntity(mesh: mesh, materials: [material])
-        // ポジション・スケールを調整
-        entity.setPosition([0, 0.3, 0], relativeTo: entity)
-        entity.setScale([0.25, 0.25, 0.25], relativeTo: entity)
-        // anchorEntityにentityを追加
-        let anchorEntity = AnchorEntity(anchor: anchor)
-        anchorEntity.addChild(entity)
-        // anchor, anchorEntityを追加
-        arView.session.add(anchor: anchor)
-        arView.scene.addAnchor(anchorEntity)
-        #endif
     }
     
     /// ARWorldMapを保存する
@@ -81,41 +113,18 @@ struct PersistanceView: View {
             else { throw ARError(.invalidWorldMap) }
             // リスタート
             setupARView(worldMap: worldMap)
-            // EntitySaveAnchorの再構築
-            for anchor in worldMap.anchors {
-                guard let anchor = anchor as? EntitySaveAnchor else { continue }
-                putTetrahedron(anchor: anchor)
-            }
+            // entitySaveAnchorを保存
+            entitySaveAnchors = (worldMap.anchors.filter { $0 is EntitySaveAnchor } as! [EntitySaveAnchor])
         } catch {
             fatalError("[エラー] worldMapの読み込みに失敗しました: \(error)")
-        }
-    }
-    
-    var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            ARViewContainer(worldMappingStatus: $worldMappingStatus)
-                .edgesIgnoringSafeArea(.all)
-                .onTapGesture(coordinateSpace: .global, perform: onTapGesture(location:))
-            HStack {
-                Button("セーブ") {
-                    save()
-                }
-                Button("ロード") {
-                    load()
-                }
-                Spacer()
-                Text(worldMappingStatus?.description ?? "nil")
-            }
-            .padding()
-        }
-        .onDisappear {
-            arView.session.pause()
         }
     }
 }
 
 private struct ARViewContainer: UIViewRepresentable {
     @Binding var worldMappingStatus: ARFrame.WorldMappingStatus?
+    @Binding var cameraTrackingStatus: ARCamera.TrackingState?
+    @Binding var entitySaveAnchors: [EntitySaveAnchor]
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -142,6 +151,7 @@ private struct ARViewContainer: UIViewRepresentable {
     
     class Coordinator: NSObject, ARSessionDelegate {
         var parent: ARViewContainer
+        var relocalizing = false
         
         init(_ parent: ARViewContainer) {
             self.parent = parent
@@ -149,6 +159,20 @@ private struct ARViewContainer: UIViewRepresentable {
         
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
             parent.worldMappingStatus = frame.worldMappingStatus
+            parent.cameraTrackingStatus = frame.camera.trackingState
+            
+            if frame.camera.trackingState == .limited(.relocalizing) {
+                // 再ローカライズに移ったらフラグを立てる
+                relocalizing = true
+            } else if relocalizing && frame.camera.trackingState == .normal {
+                // ローカライズ完了
+                // フラグを折る
+                relocalizing = false
+                // 1秒後にEntitySaveAnchorの再構築
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    self.parent.entitySaveAnchors.forEach { putTetrahedron(anchor: $0) }
+                }
+            }
         }
     }
 }
