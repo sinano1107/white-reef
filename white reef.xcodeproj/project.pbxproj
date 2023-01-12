@@ -16,6 +16,13 @@
 		9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */; };
 		9FD9899D296FD6B9008008E6 /* GenerateTetrahedron.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD9899C296FD6B9008008E6 /* GenerateTetrahedron.swift */; };
 		9FD989A0296FDE3F008008E6 /* EntitySaveAnchor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD9899F296FDE3F008008E6 /* EntitySaveAnchor.swift */; };
+		9FD989A229704206008008E6 /* GenerateRandomObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989A129704206008008E6 /* GenerateRandomObject.swift */; };
+		9FD989A429704304008008E6 /* Growth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989A329704304008008E6 /* Growth.swift */; };
+		9FD989A6297043B0008008E6 /* CalcCircumcenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989A5297043B0008008E6 /* CalcCircumcenter.swift */; };
+		9FD989AB297044AB008008E6 /* symmetric_indefinite_general.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989A8297044AB008008E6 /* symmetric_indefinite_general.swift */; };
+		9FD989AC297044AB008008E6 /* leastSquares_nonsquare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989A9297044AB008008E6 /* leastSquares_nonsquare.swift */; };
+		9FD989AD297044AB008008E6 /* isPositiveDefinite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989AA297044AB008008E6 /* isPositiveDefinite.swift */; };
+		9FD989AF29704560008008E6 /* RandomPointInHemiSphere.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989AE29704560008008E6 /* RandomPointInHemiSphere.swift */; };
 		9FE08C382968427100665752 /* APIKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FE08C372968427100665752 /* APIKey.swift */; };
 		9FEF2B9029607B9700EF759E /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEF2B8F29607B9700EF759E /* Utilities.swift */; };
 /* End PBXBuildFile section */
@@ -32,6 +39,13 @@
 		9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialView.swift; sourceTree = "<group>"; };
 		9FD9899C296FD6B9008008E6 /* GenerateTetrahedron.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateTetrahedron.swift; sourceTree = "<group>"; };
 		9FD9899F296FDE3F008008E6 /* EntitySaveAnchor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntitySaveAnchor.swift; sourceTree = "<group>"; };
+		9FD989A129704206008008E6 /* GenerateRandomObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateRandomObject.swift; sourceTree = "<group>"; };
+		9FD989A329704304008008E6 /* Growth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Growth.swift; sourceTree = "<group>"; };
+		9FD989A5297043B0008008E6 /* CalcCircumcenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcCircumcenter.swift; sourceTree = "<group>"; };
+		9FD989A8297044AB008008E6 /* symmetric_indefinite_general.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = symmetric_indefinite_general.swift; sourceTree = "<group>"; };
+		9FD989A9297044AB008008E6 /* leastSquares_nonsquare.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = leastSquares_nonsquare.swift; sourceTree = "<group>"; };
+		9FD989AA297044AB008008E6 /* isPositiveDefinite.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = isPositiveDefinite.swift; sourceTree = "<group>"; };
+		9FD989AE29704560008008E6 /* RandomPointInHemiSphere.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomPointInHemiSphere.swift; sourceTree = "<group>"; };
 		9FE08C372968427100665752 /* APIKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKey.swift; sourceTree = "<group>"; };
 		9FEF2B8F29607B9700EF759E /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		AA02404073FC7D5BADBF99A1 /* Pods-white reef.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-white reef.debug.xcconfig"; path = "Target Support Files/Pods-white reef/Pods-white reef.debug.xcconfig"; sourceTree = "<group>"; };
@@ -112,9 +126,24 @@
 		9FD9899B296FD684008008E6 /* RandomObject */ = {
 			isa = PBXGroup;
 			children = (
+				9FD989A129704206008008E6 /* GenerateRandomObject.swift */,
 				9FD9899C296FD6B9008008E6 /* GenerateTetrahedron.swift */,
+				9FD989A329704304008008E6 /* Growth.swift */,
+				9FD989A5297043B0008008E6 /* CalcCircumcenter.swift */,
+				9FD989AE29704560008008E6 /* RandomPointInHemiSphere.swift */,
+				9FD989A7297044AB008008E6 /* Accelerate-Linear-Solvers */,
 			);
 			path = RandomObject;
+			sourceTree = "<group>";
+		};
+		9FD989A7297044AB008008E6 /* Accelerate-Linear-Solvers */ = {
+			isa = PBXGroup;
+			children = (
+				9FD989A8297044AB008008E6 /* symmetric_indefinite_general.swift */,
+				9FD989A9297044AB008008E6 /* leastSquares_nonsquare.swift */,
+				9FD989AA297044AB008008E6 /* isPositiveDefinite.swift */,
+			);
+			path = "Accelerate-Linear-Solvers";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -249,12 +278,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9FD989A429704304008008E6 /* Growth.swift in Sources */,
+				9FD989AF29704560008008E6 /* RandomPointInHemiSphere.swift in Sources */,
 				9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */,
 				9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */,
+				9FD989A6297043B0008008E6 /* CalcCircumcenter.swift in Sources */,
+				9FD989A229704206008008E6 /* GenerateRandomObject.swift in Sources */,
 				9FEF2B9029607B9700EF759E /* Utilities.swift in Sources */,
 				9FD9899D296FD6B9008008E6 /* GenerateTetrahedron.swift in Sources */,
 				9F43CEF6295D982A00ABB3B0 /* ContentView.swift in Sources */,
 				9FD989A0296FDE3F008008E6 /* EntitySaveAnchor.swift in Sources */,
+				9FD989AB297044AB008008E6 /* symmetric_indefinite_general.swift in Sources */,
+				9FD989AD297044AB008008E6 /* isPositiveDefinite.swift in Sources */,
+				9FD989AC297044AB008008E6 /* leastSquares_nonsquare.swift in Sources */,
 				9FE08C382968427100665752 /* APIKey.swift in Sources */,
 				9F43CEF4295D982A00ABB3B0 /* AppDelegate.swift in Sources */,
 			);
