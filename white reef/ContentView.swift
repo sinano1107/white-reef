@@ -9,16 +9,18 @@ import SwiftUI
 import RealityKit
 import ARKit
 
+var arView = ARView(frame: .zero)
+
 struct ContentView : View {
     var body: some View {
         NavigationView {
             VStack {
-//                NavigationLink {
-//                    PersistanceView()
-//                } label: {
-//                    Text("PersistanceView")
-//                }
-//                .padding(.bottom)
+                NavigationLink {
+                    PersistanceView()
+                } label: {
+                    Text("PersistanceView")
+                }
+                .padding(.bottom)
 
                 NavigationLink {
                     GeospatialView()

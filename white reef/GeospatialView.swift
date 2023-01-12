@@ -10,8 +10,6 @@ import RealityKit
 import ARKit
 import ARCore
 
-private var arView = ARView(frame: .zero)
-
 private let kHorizontalAccuracyLowThreshold: CLLocationAccuracy = 10
 private let kHorizontalAccuracyHighThreshold: CLLocationAccuracy = 20
 private let kOrientationYawAccuracyLowThreshold: CLLocationDirectionAccuracy = 15

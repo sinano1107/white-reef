@@ -9,8 +9,6 @@ import SwiftUI
 import RealityKit
 import ARKit
 
-private var arView = ARView(frame: .zero)
-
 func setupARView(worldMap: ARWorldMap? = nil) {
     // config
     let config = ARWorldTrackingConfiguration()
