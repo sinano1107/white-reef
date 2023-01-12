@@ -7,7 +7,7 @@
 
 import RealityKit
 
-func generateTetrahedron() -> MeshResource? {
+func generateTetrahedronAnchor(transform: float4x4) -> EntitySaveAnchor {
     var positions = [simd_float3]()
     
     for _ in 1...4 {
@@ -20,17 +20,7 @@ func generateTetrahedron() -> MeshResource? {
     
     let result = connect2Tetrahedron(positions)
     
-    var descr = MeshDescriptor()
-    descr.positions = MeshBuffers.Positions(result.positions)
-    descr.normals = MeshBuffers.Normals(result.normals)
-    descr.primitives = .triangles([UInt32](0...12))
-    
-    do {
-        return try MeshResource.generate(from: [descr])
-    } catch {
-        print("[ERROR] MeshResourceの生成に失敗しました: \(error)")
-        return nil
-    }
+    return EntitySaveAnchor(positions: result.positions, normals: result.normals, transform: transform)
 }
 
 func connect2Tetrahedron(_ p: [simd_float3]) -> (positions: [simd_float3], normals: [simd_float3]) {
