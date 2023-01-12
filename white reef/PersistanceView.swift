@@ -9,6 +9,7 @@ import SwiftUI
 import RealityKit
 import ARKit
 
+/// configを設定しarVIewを起動します
 func setupARView(worldMap: ARWorldMap? = nil) {
     // config
     let config = ARWorldTrackingConfiguration()
@@ -30,73 +31,87 @@ struct PersistanceView: View {
     @AppStorage("ar-world-map") private var arWorldMap = Data()
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus?
     
+    /// タップした場所にBoxを設置する
+    private func onTapGesture(location: CGPoint) {
+        // raycast
+        guard let first = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any).first
+        else { return }
+        
+        // 古いBoxAnchorを削除
+        if let prevBoxAnchor = arView.session.currentFrame?.anchors.first(where: { $0.name == "Box" }) {
+            arView.session.remove(anchor: prevBoxAnchor)
+        }
+        
+        // 新しいBoxAnchorを生成
+        let anchor = ARAnchor(name: "Box", transform: first.worldTransform)
+        // これしないとAnchorEntity(anchor: anchor)は機能しない
+        arView.session.add(anchor: anchor)
+        // ボックスを設置
+        putBox(anchor: anchor)
+    }
+    
+    /// Boxを設置する
     private func putBox(anchor: ARAnchor) {
 #if targetEnvironment(simulator)
 #else
         // anchorEntity
         let anchorEntity = AnchorEntity(anchor: anchor)
-
+        
         // boxEntity
         let boxMesh = MeshResource.generateBox(size: 0.1)
         let boxMaterial = SimpleMaterial(color: .cyan, isMetallic: true)
         let boxEntity = ModelEntity(mesh: boxMesh, materials: [boxMaterial])
-
+        
         // ボックスが埋まらないようにする
         boxEntity.setPosition([0, 0.05, 0], relativeTo: boxEntity)
-
+        
         // add & append
         anchorEntity.addChild(boxEntity)
         arView.scene.addAnchor(anchorEntity)
 #endif
     }
     
+    /// ARWorldMapを保存する
+    private func save() {
+        arView.session.getCurrentWorldMap { worldMap, error in
+            guard let map = worldMap else { return }
+            do {
+                arWorldMap = try NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: true)
+            } catch {
+                fatalError("worldMapの保存に失敗しました: \(error)")
+            }
+        }
+    }
+    
+    /// ARWorldMapをロードしてBoxを復元する
+    private func load() {
+        do {
+            guard let worldMap = try NSKeyedUnarchiver.unarchivedObject(ofClass: ARWorldMap.self, from: arWorldMap)
+            else { throw ARError(.invalidWorldMap) }
+            
+            // リスタート
+            setupARView(worldMap: worldMap)
+            
+            // ボックスを復元
+            guard let anchor = worldMap.anchors.first(where: { $0.name == "Box" })
+            else { return }
+            putBox(anchor: anchor)
+        } catch {
+            fatalError("worldMapの読み込みに失敗しました: \(error)")
+        }
+    }
+    
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             ARViewContainer(worldMappingStatus: $worldMappingStatus)
                 .edgesIgnoringSafeArea(.all)
-                .onTapGesture(coordinateSpace: .global) { location in
-                    // raycast
-                    guard let first = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any).first
-                    else { return }
-
-                    // 古いBoxAnchorを削除
-                    if let prevBoxAnchor = arView.session.currentFrame?.anchors.first(where: { $0.name == "Box" }) {
-                        arView.session.remove(anchor: prevBoxAnchor)
-                    }
-
-                    // 新しいBoxAnchorを生成
-                    let anchor = ARAnchor(name: "Box", transform: first.worldTransform)
-                    // これしないとAnchorEntity(anchor: anchor)は機能しない
-                    arView.session.add(anchor: anchor)
-                    // ボックスを設置
-                    putBox(anchor: anchor)
-                }
+                .onTapGesture(coordinateSpace: .global, perform: onTapGesture(location:))
             HStack {
                 Button("セーブ") {
-                    arView.session.getCurrentWorldMap { worldMap, error in
-                        guard let map = worldMap else { return }
-                        do {
-                            arWorldMap = try NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: true)
-                        } catch {
-                            fatalError("worldMapの保存に失敗しました: \(error)")
-                        }
-                    }
+                    save()
                 }
                 Button("ロード") {
-                    do {
-                        guard let worldMap = try NSKeyedUnarchiver.unarchivedObject(ofClass: ARWorldMap.self, from: arWorldMap)
-                        else { throw ARError(.invalidWorldMap) }
-
-                        // リスタート
-                        setupARView(worldMap: worldMap)
-
-                        // ボックスを復元
-                        guard let anchor = worldMap.anchors.first(where: { $0.name == "Box" })
-                        else { return }
-                        putBox(anchor: anchor)
-                    } catch {
-                        fatalError("worldMapの読み込みに失敗しました: \(error)")
-                    }
+                    load()
                 }
                 Spacer()
                 Text(worldMappingStatus?.description ?? "nil")
@@ -118,6 +133,7 @@ private struct ARViewContainer: UIViewRepresentable {
     
     func makeUIView(context: Context) -> ARView {
 #if targetEnvironment(simulator)
+        return ARView(frame: .zero)
 #else
         // arViewの初期化
         arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
@@ -127,11 +143,9 @@ private struct ARViewContainer: UIViewRepresentable {
         // arView.debugOptions.insert(.showSceneUnderstanding)
         // LiDARによるポリゴンでオブジェクトを隠す
         arView.environment.sceneUnderstanding.options.insert(.occlusion)
-
-        // Coordinator
         arView.session.delegate = context.coordinator
-#endif
         return arView
+#endif
     }
     
     func updateUIView(_ arView: ARView, context: Context) {}
