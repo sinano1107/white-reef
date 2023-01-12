@@ -5,9 +5,9 @@
 //  Created by 長政輝 on 2023/01/12.
 //
 
-import RealityKit
+import simd
 
-func generateTetrahedronAnchor(transform: float4x4) -> EntitySaveAnchor {
+func generateTetrahedron() -> (positions: [simd_float3], normals: [simd_float3]) {
     var positions = [simd_float3]()
     
     for _ in 1...4 {
@@ -18,8 +18,11 @@ func generateTetrahedronAnchor(transform: float4x4) -> EntitySaveAnchor {
         ])
     }
     
-    let result = connect2Tetrahedron(positions)
-    
+    return connect2Tetrahedron(positions)
+}
+
+func generateTetrahedronAnchor(transform: float4x4) -> EntitySaveAnchor {
+    let result = generateTetrahedron()
     return EntitySaveAnchor(positions: result.positions, normals: result.normals, transform: transform)
 }
 

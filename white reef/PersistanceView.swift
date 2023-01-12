@@ -28,8 +28,8 @@ func setupARView(worldMap: ARWorldMap? = nil) {
     ])
 }
 
-/// 四面体を設置する
-private func putTetrahedron(anchor: EntitySaveAnchor) {
+/// オブジェクトを設置する
+private func putObject(anchor: EntitySaveAnchor) {
     #if targetEnvironment(simulator)
     #else
     // entityの生成
@@ -89,8 +89,8 @@ struct PersistanceView: View {
         guard let first = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any).first
         else { return }
         // anchor
-        let anchor = generateTetrahedronAnchor(transform: first.worldTransform)
-        putTetrahedron(anchor: anchor)
+        let anchor = generateRandomObjectAnchor(transform: first.worldTransform)
+        putObject(anchor: anchor)
     }
     
     /// ARWorldMapを保存する
@@ -170,7 +170,7 @@ private struct ARViewContainer: UIViewRepresentable {
                 relocalizing = false
                 // 1秒後にEntitySaveAnchorの再構築
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    self.parent.entitySaveAnchors.forEach { putTetrahedron(anchor: $0) }
+                    self.parent.entitySaveAnchors.forEach { putObject(anchor: $0) }
                 }
             }
         }
