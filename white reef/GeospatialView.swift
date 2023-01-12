@@ -24,11 +24,6 @@ HEADING（方位）: %.1f°\n    ACCURACY（精度）: %.1f°
 """
 
 struct GeospatialView: View {
-#if targetEnvironment(simulator)
-    private let arView = ARView(frame: .zero)
-#else
-    private let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
-#endif
     @State private var garSession: GARSession?
     @State private var message: String?
     @State private var trackingLabelText: String = ""
@@ -36,6 +31,8 @@ struct GeospatialView: View {
     
     /// 緯度軽度諸々の情報を受け取りボックスをおく
     func addAnchorWithCoordinate(coordinate: CLLocationCoordinate2D, altitude: CLLocationDistance, eastUpSouthQTarget: simd_quatf, boxColor: UIColor) {
+#if targetEnvironment(simulator)
+#else
         guard let garSession = garSession else { return }
         
         do {
@@ -50,10 +47,10 @@ struct GeospatialView: View {
             let boxMesh = MeshResource.generateBox(size: 0.1)
             let boxMaterial = SimpleMaterial(color: boxColor, isMetallic: true)
             let boxEntity = ModelEntity(mesh: boxMesh, materials: [boxMaterial])
-
+            
             // ボックスが埋まらないようにする
             boxEntity.setPosition([0, 0.05, 0], relativeTo: boxEntity)
-
+            
             // add & append
             anchorEntity.addChild(boxEntity)
             arView.scene.addAnchor(anchorEntity)
@@ -61,6 +58,7 @@ struct GeospatialView: View {
             message = "アンカーの追加に失敗"
             return
         }
+#endif
     }
     
     var body: some View {
@@ -71,39 +69,38 @@ struct GeospatialView: View {
         
         return ZStack(alignment: .leading) {
             ARViewContainer(
-                arView: arView,
                 garSession: $garSession,
                 message: $message,
                 trackingLabelText: $trackingLabelText,
                 statusLabel: $statusLabel
             )
-                .edgesIgnoringSafeArea(.all)
-                .onTapGesture(coordinateSpace: .global) { location in
-                    guard let garSession = garSession else { return }
-                    guard let first = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .horizontal).first
-                    else { return }
+            .edgesIgnoringSafeArea(.all)
+            .onTapGesture(coordinateSpace: .global) { location in
+                guard let garSession = garSession else { return }
+                guard let first = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .horizontal).first
+                else { return }
+                
+                do {
+                    let geospatialTransform = try garSession.geospatialTransform(transform: first.worldTransform)
+                    addAnchorWithCoordinate(coordinate: geospatialTransform.coordinate, altitude: geospatialTransform.altitude, eastUpSouthQTarget: geospatialTransform.eastUpSouthQTarget, boxColor: .red)
                     
-                    do {
-                        let geospatialTransform = try garSession.geospatialTransform(transform: first.worldTransform)
-                        addAnchorWithCoordinate(coordinate: geospatialTransform.coordinate, altitude: geospatialTransform.altitude, eastUpSouthQTarget: geospatialTransform.eastUpSouthQTarget, boxColor: .red)
-                        
-                        let defaults = UserDefaults.standard
-                        
-                        let data: [String: NSNumber] = [
-                            "latitude": NSNumber(value: geospatialTransform.coordinate.latitude),
-                            "longitude": NSNumber(value: geospatialTransform.coordinate.longitude),
-                            "altitude": NSNumber(value: geospatialTransform.altitude),
-                            "x": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[0]),
-                            "y": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[1]),
-                            "z": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[2]),
-                            "w": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[3])
-                        ]
-                        defaults.set(data, forKey: "anchor")
-                    } catch {
-                        message = "geospatialAnchorの生成に失敗しました"
-                        return
-                    }
+                    let defaults = UserDefaults.standard
+                    
+                    let data: [String: NSNumber] = [
+                        "latitude": NSNumber(value: geospatialTransform.coordinate.latitude),
+                        "longitude": NSNumber(value: geospatialTransform.coordinate.longitude),
+                        "altitude": NSNumber(value: geospatialTransform.altitude),
+                        "x": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[0]),
+                        "y": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[1]),
+                        "z": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[2]),
+                        "w": NSNumber(value: geospatialTransform.eastUpSouthQTarget.vector[3])
+                    ]
+                    defaults.set(data, forKey: "anchor")
+                } catch {
+                    message = "geospatialAnchorの生成に失敗しました"
+                    return
                 }
+            }
             
             VStack(alignment: .leading) {
                 Text(trackingLabelText)
@@ -145,11 +142,13 @@ struct GeospatialView: View {
         } message: {
             Text(message ?? "")
         }
+        .onDisappear {
+            arView.session.pause()
+        }
     }
 }
 
 private struct ARViewContainer: UIViewRepresentable {
-    let arView: ARView
     @Binding var garSession: GARSession?
     @Binding var message: String?
     @Binding var trackingLabelText: String
@@ -161,6 +160,10 @@ private struct ARViewContainer: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> ARView {
+#if targetEnvironment(simulator)
+#else
+        arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
+        
         let config = ARWorldTrackingConfiguration()
         
         // 座標系を設定
@@ -174,6 +177,7 @@ private struct ARViewContainer: UIViewRepresentable {
         arView.session.delegate = context.coordinator
         arView.session.run(config)
         
+#endif
         return arView
     }
     
