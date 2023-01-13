@@ -13,6 +13,7 @@
 		9F43CEFA295D982B00ABB3B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F43CEF9295D982B00ABB3B0 /* Assets.xcassets */; };
 		9F43CEFD295D982B00ABB3B0 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F43CEFC295D982B00ABB3B0 /* Preview Assets.xcassets */; };
 		9F56425A29713C2200695A6D /* CollisionDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F56425929713C2200695A6D /* CollisionDetection.swift */; };
+		9F56425D297140DB00695A6D /* OrbitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F56425C297140DB00695A6D /* OrbitView.swift */; };
 		9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */; };
 		9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */; };
 		9FD9899D296FD6B9008008E6 /* GenerateTetrahedron.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD9899C296FD6B9008008E6 /* GenerateTetrahedron.swift */; };
@@ -37,6 +38,7 @@
 		9F43CEF9295D982B00ABB3B0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9F43CEFC295D982B00ABB3B0 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9F56425929713C2200695A6D /* CollisionDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionDetection.swift; sourceTree = "<group>"; };
+		9F56425C297140DB00695A6D /* OrbitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitView.swift; sourceTree = "<group>"; };
 		9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistanceView.swift; sourceTree = "<group>"; };
 		9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialView.swift; sourceTree = "<group>"; };
 		9FD9899C296FD6B9008008E6 /* GenerateTetrahedron.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateTetrahedron.swift; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 				9FEF2B8F29607B9700EF759E /* Utilities.swift */,
 				9FE08C372968427100665752 /* APIKey.swift */,
 				9F43CEF9295D982B00ABB3B0 /* Assets.xcassets */,
+				9F56425B2971406A00695A6D /* OrbitView */,
 				9FD9899B296FD684008008E6 /* RandomObject */,
 				9F43CEFB295D982B00ABB3B0 /* Preview Content */,
 			);
@@ -123,6 +126,14 @@
 				9F43CEFC295D982B00ABB3B0 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		9F56425B2971406A00695A6D /* OrbitView */ = {
+			isa = PBXGroup;
+			children = (
+				9F56425C297140DB00695A6D /* OrbitView.swift */,
+			);
+			path = OrbitView;
 			sourceTree = "<group>";
 		};
 		9FD9899B296FD684008008E6 /* RandomObject */ = {
@@ -283,6 +294,7 @@
 			files = (
 				9FD989A429704304008008E6 /* Growth.swift in Sources */,
 				9FD989AF29704560008008E6 /* RandomPointInHemiSphere.swift in Sources */,
+				9F56425D297140DB00695A6D /* OrbitView.swift in Sources */,
 				9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */,
 				9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */,
 				9FD989A6297043B0008008E6 /* CalcCircumcenter.swift in Sources */,
