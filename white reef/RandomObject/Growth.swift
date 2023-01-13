@@ -47,6 +47,26 @@ func growth(positions inputPositions: [simd_float3], normals inputNormals: [simd
             growthPoint = circumcenter + turnedVector
         }
         
+        /**　成長点を採用した場合、既存のポリゴンと干渉（衝突）するか確認する */
+        func checkCollision() -> Bool {
+            for point_index in 0...2 {
+                /** 成長面を構成する一点（ループによってすべてチェックする）*/
+                let point = meshPositions[point_index]
+                let linePoints = [growthPoint, point]
+                for polygon_index in 0 ..< positions.count / 3 {
+                    // 既存のポリゴン（ループによってすべてチェックする）
+                    let startIndex = polygon_index * 3
+                    let endIndex = startIndex + 2
+                    let polygonPoints = positions[startIndex ... endIndex].map { $0 }
+                    let normal = normals[startIndex] // 三点の法線はすべて同じ値なので適当に最初のを取り出す
+                    if doesItCollision(polygonPoints: polygonPoints, normal: normal, linePoints: linePoints) {
+                        return true
+                    }
+                }
+            }
+            return false
+        }
+        
         /** MeshDescriptorに代入できるデータを生成する */
         func build() -> (positions: [simd_float3], normals: [simd_float3]) {
             var positions = self.positions
@@ -68,6 +88,10 @@ func growth(positions inputPositions: [simd_float3], normals inputNormals: [simd
     
     do {
         var data = try GrowthData(positions: inputPositions, normals: inputNormals)
+        // 衝突しなくなるまで試行する
+        while data.checkCollision() {
+            data = try GrowthData(positions: inputPositions, normals: inputNormals)
+        }
         // ビルドして返す
         return data.build()
     } catch GrowthError.failureGetCircumcenter {
