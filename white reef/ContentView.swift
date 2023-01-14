@@ -12,6 +12,9 @@ import ARKit
 var arView = ARView(frame: .zero)
 
 struct ContentView : View {
+    @State private var model = ModelEntity()
+    @State private var sheet = false
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -21,14 +24,22 @@ struct ContentView : View {
                     Text("PersistanceView")
                 }
                 .padding(.bottom)
-
+                
                 NavigationLink {
                     GeospatialView()
                 } label: {
                     Text("GeospatialView")
                 }
+                .padding(.bottom)
+                
+                Button("Sheet") {
+                    sheet.toggle()
+                }
             }
             .navigationTitle("White Reef")
+        }
+        .sheet(isPresented: $sheet) {
+            ObjectSheet(model: $model)
         }
     }
 }
