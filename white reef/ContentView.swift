@@ -33,16 +33,35 @@ struct ContentView : View {
                 .padding(.bottom)
                 
                 Button("Sheet") {
+                    setModel()
                     sheet.toggle()
                 }
             }
             .navigationTitle("White Reef")
         }
         .sheet(isPresented: $sheet) {
-            OrbitView($model)
-                .edgesIgnoringSafeArea(.all)
-                .presentationDetents([.medium, .large])
+            VStack(alignment: .trailing) {
+                Button(action: {
+                    setModel()
+                }) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.title)
+                }
+                .padding([.top, .trailing])
+                OrbitView($model, radius: 2)
+            }
+            .presentationDetents([.medium, .large])
         }
+    }
+    
+    func setModel() {
+        let (positions, normals) = generateRandomObject()
+        var descr = MeshDescriptor()
+        descr.positions = MeshBuffers.Positions(positions)
+        descr.normals = MeshBuffers.Normals(normals)
+        descr.primitives = .triangles([UInt32](0...UInt32(positions.count)))
+        let material = SimpleMaterial(color: .cyan, isMetallic: true)
+        model = ModelEntity(mesh: try! .generate(from: [descr]), materials: [material])
     }
 }
 

@@ -7,7 +7,7 @@
 
 import simd
 
-func generateRandomObjectAnchor(transform: float4x4) -> EntitySaveAnchor {
+func generateRandomObject() -> (position: [simd_float3], normals: [simd_float3]) {
     let tetrahedron = generateTetrahedron()
     var positions = tetrahedron.positions
     var normals = tetrahedron.normals
@@ -18,6 +18,12 @@ func generateRandomObjectAnchor(transform: float4x4) -> EntitySaveAnchor {
     
     //　正規化
     positions = normalizePositions(positions: positions)
+    
+    return (positions, normals)
+}
+
+func generateRandomObjectAnchor(transform: float4x4) -> EntitySaveAnchor {
+    let (positions, normals) = generateRandomObject()
 
     return EntitySaveAnchor(positions: positions, normals: normals, transform: transform)
 }
@@ -50,14 +56,14 @@ func normalizePositions(positions: [simd_float3]) -> [simd_float3] {
     print(rangeX, rangeY, rangeZ, maxRange)
     // X軸,Y軸の中心の座標
     let centerX = minX + rangeX / 2
+    let centerY = minY + rangeY / 2
     let centerZ = minZ + rangeZ / 2
     // 正規化
     return positions.map { position in
         var position = position
-        // 一番低い頂点の座標が0になるように調整
-        position.y -= minY
         // オブジェクトを上から見た時の中心が原点になるように調整
         position.x -= centerX
+        position.y -= centerY
         position.z -= centerZ
         // 最も大きな幅が1であるように調整
         position /= maxRange
