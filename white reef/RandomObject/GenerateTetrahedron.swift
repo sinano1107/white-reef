@@ -21,11 +21,6 @@ func generateTetrahedron() -> (positions: [simd_float3], normals: [simd_float3])
     return connect2Tetrahedron(positions)
 }
 
-func generateTetrahedronAnchor(transform: float4x4) -> EntitySaveAnchor {
-    let result = generateTetrahedron()
-    return EntitySaveAnchor(positions: result.positions, normals: result.normals, transform: transform)
-}
-
 func connect2Tetrahedron(_ p: [simd_float3]) -> (positions: [simd_float3], normals: [simd_float3]) {
     precondition(p.count == 4, "値が４つの配列を渡してください")
     
