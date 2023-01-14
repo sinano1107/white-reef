@@ -53,7 +53,6 @@ func normalizePositions(positions: [simd_float3]) -> [simd_float3] {
     let rangeZ = maxZ - minZ
     /// 最も大きな幅
     let maxRange = max(rangeX, rangeY, rangeZ)
-    print(rangeX, rangeY, rangeZ, maxRange)
     // X軸,Y軸の中心の座標
     let centerX = minX + rangeX / 2
     let centerY = minY + rangeY / 2
