@@ -9,7 +9,8 @@ import SwiftUI
 import RealityKit
 
 struct ObjectSheet: View {
-    @Binding var model: ModelEntity
+    let objectData: ObjectData
+    @State private var model = ObjectData.sample.generate()
     
     var body: some View {
         VStack(alignment: .trailing) {
@@ -31,12 +32,8 @@ struct ObjectSheet: View {
     /// modelを設定
     func setModel() {
         let (positions, normals) = generateRandomObject()
-        var descr = MeshDescriptor()
-        descr.positions = MeshBuffers.Positions(positions)
-        descr.normals = MeshBuffers.Normals(normals)
-        descr.primitives =  .triangles([UInt32](0...UInt32(positions.count)))
-        let material = randomMaterial()
-        model = ModelEntity(mesh: try! .generate(from: [descr]), materials: [material])
+        objectData.update(positions: positions, normals: normals)
+        model = objectData.generate()
     }
 }
 
@@ -60,12 +57,10 @@ func randomMaterial() -> SimpleMaterial {
 }
 
 struct ObjectSheet_Previews: PreviewProvider {
-    @State static var model = ModelEntity(mesh: .generateBox(size: 1))
-    
     static var previews: some View {
         VStack {}
             .sheet(isPresented: .constant(true)) {
-                ObjectSheet(model: $model)
+                ObjectSheet(objectData: ObjectData.sample)
             }
     }
 }

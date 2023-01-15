@@ -12,7 +12,7 @@ import ARKit
 var arView = ARView(frame: .zero)
 
 struct ContentView : View {
-    @State private var model = ModelEntity()
+    private let objectData = ObjectData.sample
     @State private var sheet = false
     
     var body: some View {
@@ -35,11 +35,17 @@ struct ContentView : View {
                 Button("Sheet") {
                     sheet.toggle()
                 }
+                .padding(.bottom)
+                
+                Button("print") {
+                    print(objectData.positions)
+                    print(objectData.normals)
+                }
             }
             .navigationTitle("White Reef")
         }
         .sheet(isPresented: $sheet) {
-            ObjectSheet(model: $model)
+            ObjectSheet(objectData: objectData)
         }
     }
 }
