@@ -15,6 +15,7 @@
 		9F56425A29713C2200695A6D /* CollisionDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F56425929713C2200695A6D /* CollisionDetection.swift */; };
 		9F56425D297140DB00695A6D /* OrbitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F56425C297140DB00695A6D /* OrbitView.swift */; };
 		9F56425F2972B71A00695A6D /* ObjectSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F56425E2972B71A00695A6D /* ObjectSheet.swift */; };
+		9F56426229737E3D00695A6D /* ObjectData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F56426129737E3D00695A6D /* ObjectData.swift */; };
 		9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */; };
 		9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */; };
 		9FD9899D296FD6B9008008E6 /* GenerateTetrahedron.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD9899C296FD6B9008008E6 /* GenerateTetrahedron.swift */; };
@@ -41,6 +42,7 @@
 		9F56425929713C2200695A6D /* CollisionDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionDetection.swift; sourceTree = "<group>"; };
 		9F56425C297140DB00695A6D /* OrbitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitView.swift; sourceTree = "<group>"; };
 		9F56425E2972B71A00695A6D /* ObjectSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectSheet.swift; sourceTree = "<group>"; };
+		9F56426129737E3D00695A6D /* ObjectData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectData.swift; sourceTree = "<group>"; };
 		9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistanceView.swift; sourceTree = "<group>"; };
 		9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialView.swift; sourceTree = "<group>"; };
 		9FD9899C296FD6B9008008E6 /* GenerateTetrahedron.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateTetrahedron.swift; sourceTree = "<group>"; };
@@ -117,6 +119,7 @@
 				9FE08C372968427100665752 /* APIKey.swift */,
 				9F43CEF9295D982B00ABB3B0 /* Assets.xcassets */,
 				9F56425B2971406A00695A6D /* OrbitView */,
+				9F56426029737E2500695A6D /* Model */,
 				9FD9899B296FD684008008E6 /* RandomObject */,
 				9F43CEFB295D982B00ABB3B0 /* Preview Content */,
 			);
@@ -137,6 +140,14 @@
 				9F56425C297140DB00695A6D /* OrbitView.swift */,
 			);
 			path = OrbitView;
+			sourceTree = "<group>";
+		};
+		9F56426029737E2500695A6D /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				9F56426129737E3D00695A6D /* ObjectData.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 		9FD9899B296FD684008008E6 /* RandomObject */ = {
@@ -309,6 +320,7 @@
 				9FD989A0296FDE3F008008E6 /* EntitySaveAnchor.swift in Sources */,
 				9FD989AB297044AB008008E6 /* symmetric_indefinite_general.swift in Sources */,
 				9FD989AD297044AB008008E6 /* isPositiveDefinite.swift in Sources */,
+				9F56426229737E3D00695A6D /* ObjectData.swift in Sources */,
 				9FD989AC297044AB008008E6 /* leastSquares_nonsquare.swift in Sources */,
 				9FE08C382968427100665752 /* APIKey.swift in Sources */,
 				9F56425A29713C2200695A6D /* CollisionDetection.swift in Sources */,
