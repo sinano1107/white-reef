@@ -12,16 +12,15 @@ import ARKit
 var arView = ARView(frame: .zero)
 
 struct ContentView : View {
-    @State private var model = ModelEntity()
-    @State private var sheet = false
+    private let objectData = ObjectData.sample
+    @State private var sheetIsPresented = false
+    @State private var arIsPresented = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
-                NavigationLink {
-                    PersistanceView()
-                } label: {
-                    Text("PersistanceView")
+                Button("PersistanceView") {
+                    arIsPresented.toggle()
                 }
                 .padding(.bottom)
                 
@@ -33,13 +32,22 @@ struct ContentView : View {
                 .padding(.bottom)
                 
                 Button("Sheet") {
-                    sheet.toggle()
+                    sheetIsPresented.toggle()
+                }
+                .padding(.bottom)
+                
+                Button("print") {
+                    print(objectData.positions)
+                    print(objectData.normals)
                 }
             }
             .navigationTitle("White Reef")
+            .navigationDestination(isPresented: $arIsPresented) {
+                PersistanceView(objectData: objectData)
+            }
         }
-        .sheet(isPresented: $sheet) {
-            ObjectSheet(model: $model)
+        .sheet(isPresented: $sheetIsPresented) {
+            ObjectSheet(arIsPresented: $arIsPresented, objectData: objectData)
         }
     }
 }
