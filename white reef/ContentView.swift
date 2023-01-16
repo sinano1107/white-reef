@@ -13,7 +13,7 @@ var arView = ARView(frame: .zero)
 
 struct ContentView : View {
     private let objectData = ObjectData.sample
-    @State private var sheet = false
+    @State private var sheetIsPresented = false
     
     var body: some View {
         NavigationView {
@@ -33,7 +33,7 @@ struct ContentView : View {
                 .padding(.bottom)
                 
                 Button("Sheet") {
-                    sheet.toggle()
+                    sheetIsPresented.toggle()
                 }
                 .padding(.bottom)
                 
@@ -44,7 +44,7 @@ struct ContentView : View {
             }
             .navigationTitle("White Reef")
         }
-        .sheet(isPresented: $sheet) {
+        .sheet(isPresented: $sheetIsPresented) {
             ObjectSheet(objectData: objectData)
         }
     }
