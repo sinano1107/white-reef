@@ -53,14 +53,14 @@ struct PersistanceView: View {
     @AppStorage("ar-world-map") private var arWorldMap = Data()
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus?
     @State private var cameraTrackingState: ARCamera.TrackingState?
-    @State private var entitySaveAnchors: [EntitySaveAnchor] = []
+    @State private var saveAnchor: SaveAnchor = SaveAnchor.sample
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             ARViewContainer(
                 worldMappingStatus: $worldMappingStatus,
                 cameraTrackingStatus: $cameraTrackingState,
-                entitySaveAnchors: $entitySaveAnchors
+                saveAnchor: $saveAnchor
             )
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture(coordinateSpace: .global, perform: onTapGesture(location:))
@@ -114,7 +114,11 @@ struct PersistanceView: View {
     /// ARWorldMapを保存する
     private func save() {
         arView.session.getCurrentWorldMap { worldMap, error in
-            guard let map = worldMap else { return }
+            guard let map = worldMap else { print("[エラー] mapがありません"); return }
+            guard let objectAnchor = map.anchors.first(where: { $0.name == Self.objectAnchorName })
+            else { print("[エラー] objectAnchorがありません"); return }
+            map.anchors.removeAll()
+            map.anchors.append(SaveAnchor(objectData: objectData, transform: objectAnchor.transform))
             do {
                 arWorldMap = try NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: true)
             } catch {
@@ -131,8 +135,8 @@ struct PersistanceView: View {
             else { throw ARError(.invalidWorldMap) }
             // リスタート
             runARView(worldMap: worldMap)
-            // entitySaveAnchorを保存
-            entitySaveAnchors = (worldMap.anchors.filter { $0 is EntitySaveAnchor } as! [EntitySaveAnchor])
+            // saveAnchorを保存
+            saveAnchor = worldMap.anchors.first as! SaveAnchor
         } catch {
             fatalError("[エラー] worldMapの読み込みに失敗しました: \(error)")
         }
@@ -142,7 +146,7 @@ struct PersistanceView: View {
 private struct ARViewContainer: UIViewRepresentable {
     @Binding var worldMappingStatus: ARFrame.WorldMappingStatus?
     @Binding var cameraTrackingStatus: ARCamera.TrackingState?
-    @Binding var entitySaveAnchors: [EntitySaveAnchor]
+    @Binding var saveAnchor: SaveAnchor
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -187,7 +191,9 @@ private struct ARViewContainer: UIViewRepresentable {
                 relocalizing = false
                 // 1秒後にEntitySaveAnchorの再構築
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    self.parent.entitySaveAnchors.forEach { putObject(anchor: $0) }
+                    let anchor = self.parent.saveAnchor
+                    let anchorEntity = anchor.generateAnchorEntity()
+                    arView.scene.addAnchor(anchorEntity)
                 }
             }
         }
