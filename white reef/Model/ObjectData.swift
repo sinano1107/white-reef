@@ -51,7 +51,15 @@ class ObjectData {
         self.material = MaterialData()
     }
     
-    func generate() -> ModelEntity {
+    func generate(moveTheOriginDown: Bool = false) -> ModelEntity {
+        var positions = positions
+        
+        // 原点を下にする
+        if moveTheOriginDown {
+            let yMin = positions.min { a, b in a.y < b.y }!.y
+            for index in 0..<positions.count { positions[index].y -= yMin }
+        }
+        
         var descr = MeshDescriptor()
         descr.positions = MeshBuffers.Positions(positions)
         descr.normals = MeshBuffers.Normals(normals)
