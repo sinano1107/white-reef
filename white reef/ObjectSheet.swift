@@ -9,19 +9,33 @@ import SwiftUI
 import RealityKit
 
 struct ObjectSheet: View {
-    let objectData: ObjectData
+    @Environment(\.dismiss) var dismiss
     @State private var model = ObjectData.sample.generate()
+    @Binding var arIsPresented: Bool
+    let objectData: ObjectData
     
     var body: some View {
-        VStack(alignment: .trailing) {
-            Button(action: {
-                setModel()
-            }) {
-                Image(systemName: "arrow.clockwise")
-                    .font(.title)
-            }
-            .padding([.top, .trailing])
+        ZStack {
             OrbitView($model, radius: 1.5)
+                .ignoresSafeArea()
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        setModel()
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.title)
+                    }
+                }
+                Spacer()
+                Button("choose and place") {
+                    dismiss()
+                    arIsPresented.toggle()
+                }
+                .font(.title3)
+            }
+            .padding()
         }
         .presentationDetents([.medium, .large])
         .onAppear {
@@ -41,7 +55,7 @@ struct ObjectSheet_Previews: PreviewProvider {
     static var previews: some View {
         VStack {}
             .sheet(isPresented: .constant(true)) {
-                ObjectSheet(objectData: ObjectData.sample)
+                ObjectSheet(arIsPresented: .constant(false), objectData: ObjectData.sample)
             }
     }
 }

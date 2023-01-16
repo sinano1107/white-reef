@@ -14,14 +14,13 @@ var arView = ARView(frame: .zero)
 struct ContentView : View {
     private let objectData = ObjectData.sample
     @State private var sheetIsPresented = false
+    @State private var arIsPresented = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
-                NavigationLink {
-                    PersistanceView(objectData: objectData)
-                } label: {
-                    Text("PersistanceView")
+                Button("PersistanceView") {
+                    arIsPresented.toggle()
                 }
                 .padding(.bottom)
                 
@@ -43,9 +42,12 @@ struct ContentView : View {
                 }
             }
             .navigationTitle("White Reef")
+            .navigationDestination(isPresented: $arIsPresented) {
+                PersistanceView(objectData: objectData)
+            }
         }
         .sheet(isPresented: $sheetIsPresented) {
-            ObjectSheet(objectData: objectData)
+            ObjectSheet(arIsPresented: $arIsPresented, objectData: objectData)
         }
     }
 }
