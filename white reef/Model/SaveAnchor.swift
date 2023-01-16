@@ -69,5 +69,5 @@ class SaveAnchor: ARAnchor {
         return anchorEntity
     }
     
-    static let sample = SaveAnchor(objectData: ObjectData(positions: [], normals: []), scale: simd_float3(), transform: float4x4())
+    static let sample = SaveAnchor(objectData: ObjectData.sample, scale: simd_float3(), transform: float4x4())
 }
