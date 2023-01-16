@@ -28,25 +28,6 @@ func runARView(worldMap: ARWorldMap? = nil) {
     ])
 }
 
-/// オブジェクトを設置する
-private func putObject(anchor: EntitySaveAnchor) {
-    #if targetEnvironment(simulator)
-    #else
-    // entityの生成
-    guard let mesh = anchor.generateMeshResource() else { return }
-    let material = SimpleMaterial(color: .cyan, isMetallic: true)
-    let entity = ModelEntity(mesh: mesh, materials: [material])
-    // ポジション・スケールを調整
-    entity.setScale([0.2, 0.2, 0.2], relativeTo: entity)
-    // anchorEntityにentityを追加
-    let anchorEntity = AnchorEntity(anchor: anchor)
-    anchorEntity.addChild(entity)
-    // anchor, anchorEntityを追加
-    arView.session.add(anchor: anchor)
-    arView.scene.addAnchor(anchorEntity)
-    #endif
-}
-
 struct PersistanceView: View {
     static private let objectAnchorName = "ObjectAnchor"
     let objectData: ObjectData
