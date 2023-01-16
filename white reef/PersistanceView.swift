@@ -35,6 +35,7 @@ struct PersistanceView: View {
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus?
     @State private var cameraTrackingState: ARCamera.TrackingState?
     @State private var saveAnchor: SaveAnchor = SaveAnchor.sample
+    @State private var object = ModelEntity()
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -81,7 +82,7 @@ struct PersistanceView: View {
         // anchor
         let anchor = ARAnchor(name: Self.objectAnchorName, transform: first.worldTransform)
         // object
-        let object = objectData.generate(moveTheOriginDown: true)
+        object = objectData.generate(moveTheOriginDown: true)
         object.setScale([0.5, 0.5, 0.5], relativeTo: object)
         // anchorEntity
         let anchorEntity = AnchorEntity(anchor: anchor)
@@ -99,7 +100,7 @@ struct PersistanceView: View {
             guard let objectAnchor = map.anchors.first(where: { $0.name == Self.objectAnchorName })
             else { print("[エラー] objectAnchorがありません"); return }
             map.anchors.removeAll()
-            map.anchors.append(SaveAnchor(objectData: objectData, transform: objectAnchor.transform))
+            map.anchors.append(SaveAnchor(objectData: objectData, scale: object.scale, transform: objectAnchor.transform))
             do {
                 arWorldMap = try NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: true)
             } catch {
