@@ -8,7 +8,12 @@
 import UIKit
 import RealityKit
 
-class ObjectData {
+class ObjectData: NSObject, NSSecureCoding {
+    static var supportsSecureCoding: Bool = true
+    
+    static private let positionsKey = "positions"
+    static private let normalsKey = "normals"
+    
     private(set) var positions: [simd_float3]
     private(set) var normals: [simd_float3]
     private(set) var material: MaterialData
@@ -43,6 +48,32 @@ class ObjectData {
         self.positions = positions
         self.normals = normals
         self.material = MaterialData()
+    }
+    
+    required convenience init?(coder: NSCoder) {
+        guard
+            let positionsData = coder.decodeObject(of: NSData.self, forKey: Self.positionsKey) as? Data,
+            let normalsData = coder.decodeObject(of: NSData.self, forKey: Self.normalsKey) as? Data
+        else { return nil }
+        
+        do {
+            let positions = try JSONDecoder().decode([simd_float3].self, from: positionsData)
+            let normals = try JSONDecoder().decode([simd_float3].self, from: normalsData)
+            self.init(positions: positions, normals: normals)
+        } catch {
+            fatalError("[エラー] ObjectDataのcoderのデコードに失敗しました: \(error)")
+        }
+    }
+    
+    func encode(with coder: NSCoder) {
+        do {
+            let positions = try JSONEncoder().encode(positions)
+            let normals = try JSONEncoder().encode(normals)
+            coder.encode(positions, forKey: Self.positionsKey)
+            coder.encode(normals, forKey: Self.normalsKey)
+        } catch {
+            fatalError("[エラー] ObjectDataのエンコードに失敗しました: \(error)")
+        }
     }
     
     func update(positions: [simd_float3], normals: [simd_float3]) {
