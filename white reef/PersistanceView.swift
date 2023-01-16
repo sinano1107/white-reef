@@ -48,6 +48,7 @@ private func putObject(anchor: EntitySaveAnchor) {
 }
 
 struct PersistanceView: View {
+    static private let objectAnchorName = "ObjectAnchor"
     let objectData: ObjectData
     @AppStorage("ar-world-map") private var arWorldMap = Data()
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus?
@@ -90,8 +91,14 @@ struct PersistanceView: View {
         // raycast
         guard let first = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any).first
         else { return }
+        
+        // 既存のAnchorを削除
+        if let prevAnchor = arView.session.currentFrame?.anchors.first(where: {
+            $0.name == Self.objectAnchorName
+        }) { arView.session.remove(anchor: prevAnchor) }
+        
         // anchor
-        let anchor = ARAnchor(transform: first.worldTransform)
+        let anchor = ARAnchor(name: Self.objectAnchorName, transform: first.worldTransform)
         // object
         let object = objectData.generate(moveTheOriginDown: true)
         object.setScale([0.5, 0.5, 0.5], relativeTo: object)
