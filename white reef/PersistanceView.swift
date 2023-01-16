@@ -48,6 +48,7 @@ private func putObject(anchor: EntitySaveAnchor) {
 }
 
 struct PersistanceView: View {
+    let objectData: ObjectData
     @AppStorage("ar-world-map") private var arWorldMap = Data()
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus?
     @State private var cameraTrackingState: ARCamera.TrackingState?
@@ -84,12 +85,23 @@ struct PersistanceView: View {
     
     /// タップした場所にObjectを設置する
     private func onTapGesture(location: CGPoint) {
+        #if targetEnvironment(simulator)
+        #else
         // raycast
         guard let first = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any).first
         else { return }
         // anchor
-        let anchor = generateRandomObjectAnchor(transform: first.worldTransform)
-        putObject(anchor: anchor)
+        let anchor = ARAnchor(transform: first.worldTransform)
+        // object
+        let object = objectData.generate(moveTheOriginDown: true)
+        object.setScale([0.5, 0.5, 0.5], relativeTo: object)
+        // anchorEntity
+        let anchorEntity = AnchorEntity(anchor: anchor)
+        anchorEntity.addChild(object)
+        // session sceneに追加
+        arView.session.add(anchor: anchor)
+        arView.scene.addAnchor(anchorEntity)
+        #endif
     }
     
     /// ARWorldMapを保存する
@@ -178,6 +190,6 @@ private struct ARViewContainer: UIViewRepresentable {
 
 struct PersistanceView_Previews: PreviewProvider {
     static var previews: some View {
-        PersistanceView()
+        PersistanceView(objectData: ObjectData.sample)
     }
 }

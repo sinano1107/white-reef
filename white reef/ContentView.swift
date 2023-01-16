@@ -19,7 +19,7 @@ struct ContentView : View {
         NavigationView {
             VStack {
                 NavigationLink {
-                    PersistanceView()
+                    PersistanceView(objectData: objectData)
                 } label: {
                     Text("PersistanceView")
                 }
