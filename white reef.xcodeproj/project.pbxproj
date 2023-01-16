@@ -20,7 +20,6 @@
 		9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */; };
 		9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */; };
 		9FD9899D296FD6B9008008E6 /* GenerateTetrahedron.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD9899C296FD6B9008008E6 /* GenerateTetrahedron.swift */; };
-		9FD989A0296FDE3F008008E6 /* EntitySaveAnchor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD9899F296FDE3F008008E6 /* EntitySaveAnchor.swift */; };
 		9FD989A229704206008008E6 /* GenerateRandomObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989A129704206008008E6 /* GenerateRandomObject.swift */; };
 		9FD989A429704304008008E6 /* Growth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989A329704304008008E6 /* Growth.swift */; };
 		9FD989A6297043B0008008E6 /* CalcCircumcenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989A5297043B0008008E6 /* CalcCircumcenter.swift */; };
@@ -48,7 +47,6 @@
 		9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistanceView.swift; sourceTree = "<group>"; };
 		9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialView.swift; sourceTree = "<group>"; };
 		9FD9899C296FD6B9008008E6 /* GenerateTetrahedron.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateTetrahedron.swift; sourceTree = "<group>"; };
-		9FD9899F296FDE3F008008E6 /* EntitySaveAnchor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntitySaveAnchor.swift; sourceTree = "<group>"; };
 		9FD989A129704206008008E6 /* GenerateRandomObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateRandomObject.swift; sourceTree = "<group>"; };
 		9FD989A329704304008008E6 /* Growth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Growth.swift; sourceTree = "<group>"; };
 		9FD989A5297043B0008008E6 /* CalcCircumcenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcCircumcenter.swift; sourceTree = "<group>"; };
@@ -116,7 +114,6 @@
 				9F56425E2972B71A00695A6D /* ObjectSheet.swift */,
 				9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */,
 				9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */,
-				9FD9899F296FDE3F008008E6 /* EntitySaveAnchor.swift */,
 				9FEF2B8F29607B9700EF759E /* Utilities.swift */,
 				9FE08C372968427100665752 /* APIKey.swift */,
 				9F43CEF9295D982B00ABB3B0 /* Assets.xcassets */,
@@ -321,7 +318,6 @@
 				9FEF2B9029607B9700EF759E /* Utilities.swift in Sources */,
 				9FD9899D296FD6B9008008E6 /* GenerateTetrahedron.swift in Sources */,
 				9F43CEF6295D982A00ABB3B0 /* ContentView.swift in Sources */,
-				9FD989A0296FDE3F008008E6 /* EntitySaveAnchor.swift in Sources */,
 				9FD989AB297044AB008008E6 /* symmetric_indefinite_general.swift in Sources */,
 				9FD989AD297044AB008008E6 /* isPositiveDefinite.swift in Sources */,
 				9F56426229737E3D00695A6D /* ObjectData.swift in Sources */,
