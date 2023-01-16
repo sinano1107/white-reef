@@ -28,39 +28,21 @@ func runARView(worldMap: ARWorldMap? = nil) {
     ])
 }
 
-/// オブジェクトを設置する
-private func putObject(anchor: EntitySaveAnchor) {
-    #if targetEnvironment(simulator)
-    #else
-    // entityの生成
-    guard let mesh = anchor.generateMeshResource() else { return }
-    let material = SimpleMaterial(color: .cyan, isMetallic: true)
-    let entity = ModelEntity(mesh: mesh, materials: [material])
-    // ポジション・スケールを調整
-    entity.setScale([0.2, 0.2, 0.2], relativeTo: entity)
-    // anchorEntityにentityを追加
-    let anchorEntity = AnchorEntity(anchor: anchor)
-    anchorEntity.addChild(entity)
-    // anchor, anchorEntityを追加
-    arView.session.add(anchor: anchor)
-    arView.scene.addAnchor(anchorEntity)
-    #endif
-}
-
 struct PersistanceView: View {
     static private let objectAnchorName = "ObjectAnchor"
     let objectData: ObjectData
     @AppStorage("ar-world-map") private var arWorldMap = Data()
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus?
     @State private var cameraTrackingState: ARCamera.TrackingState?
-    @State private var entitySaveAnchors: [EntitySaveAnchor] = []
+    @State private var saveAnchor: SaveAnchor = SaveAnchor.sample
+    @State private var object = ModelEntity()
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             ARViewContainer(
                 worldMappingStatus: $worldMappingStatus,
                 cameraTrackingStatus: $cameraTrackingState,
-                entitySaveAnchors: $entitySaveAnchors
+                saveAnchor: $saveAnchor
             )
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture(coordinateSpace: .global, perform: onTapGesture(location:))
@@ -100,7 +82,7 @@ struct PersistanceView: View {
         // anchor
         let anchor = ARAnchor(name: Self.objectAnchorName, transform: first.worldTransform)
         // object
-        let object = objectData.generate(moveTheOriginDown: true)
+        object = objectData.generate(moveTheOriginDown: true)
         object.setScale([0.5, 0.5, 0.5], relativeTo: object)
         // anchorEntity
         let anchorEntity = AnchorEntity(anchor: anchor)
@@ -114,7 +96,11 @@ struct PersistanceView: View {
     /// ARWorldMapを保存する
     private func save() {
         arView.session.getCurrentWorldMap { worldMap, error in
-            guard let map = worldMap else { return }
+            guard let map = worldMap else { print("[エラー] mapがありません"); return }
+            guard let objectAnchor = map.anchors.first(where: { $0.name == Self.objectAnchorName })
+            else { print("[エラー] objectAnchorがありません"); return }
+            map.anchors.removeAll()
+            map.anchors.append(SaveAnchor(objectData: objectData, scale: object.scale, transform: objectAnchor.transform))
             do {
                 arWorldMap = try NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: true)
             } catch {
@@ -131,8 +117,8 @@ struct PersistanceView: View {
             else { throw ARError(.invalidWorldMap) }
             // リスタート
             runARView(worldMap: worldMap)
-            // entitySaveAnchorを保存
-            entitySaveAnchors = (worldMap.anchors.filter { $0 is EntitySaveAnchor } as! [EntitySaveAnchor])
+            // saveAnchorを保存
+            saveAnchor = worldMap.anchors.first as! SaveAnchor
         } catch {
             fatalError("[エラー] worldMapの読み込みに失敗しました: \(error)")
         }
@@ -142,7 +128,7 @@ struct PersistanceView: View {
 private struct ARViewContainer: UIViewRepresentable {
     @Binding var worldMappingStatus: ARFrame.WorldMappingStatus?
     @Binding var cameraTrackingStatus: ARCamera.TrackingState?
-    @Binding var entitySaveAnchors: [EntitySaveAnchor]
+    @Binding var saveAnchor: SaveAnchor
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -187,7 +173,9 @@ private struct ARViewContainer: UIViewRepresentable {
                 relocalizing = false
                 // 1秒後にEntitySaveAnchorの再構築
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    self.parent.entitySaveAnchors.forEach { putObject(anchor: $0) }
+                    let anchor = self.parent.saveAnchor
+                    let anchorEntity = anchor.generateAnchorEntity()
+                    arView.scene.addAnchor(anchorEntity)
                 }
             }
         }

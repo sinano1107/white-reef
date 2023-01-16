@@ -22,12 +22,6 @@ func generateRandomObject() -> (position: [simd_float3], normals: [simd_float3])
     return (positions, normals)
 }
 
-func generateRandomObjectAnchor(transform: float4x4) -> EntitySaveAnchor {
-    let (positions, normals) = generateRandomObject()
-
-    return EntitySaveAnchor(positions: positions, normals: normals, transform: transform)
-}
-
 /// 正規化を行う
 func normalizePositions(positions: [simd_float3]) -> [simd_float3] {
     // 各軸の最小値と最大値を取得
