@@ -9,8 +9,8 @@ import SwiftUI
 import RealityKit
 import ARKit
 
-/// configを設定しarVIewを起動します
-func setupARView(worldMap: ARWorldMap? = nil) {
+/// configを設定しarViewを起動します
+func runARView(worldMap: ARWorldMap? = nil) {
     arView.scene.anchors.removeAll()
     // config
     let config = ARWorldTrackingConfiguration()
@@ -123,7 +123,7 @@ struct PersistanceView: View {
             guard let worldMap = try NSKeyedUnarchiver.unarchivedObject(ofClass: ARWorldMap.self, from: arWorldMap)
             else { throw ARError(.invalidWorldMap) }
             // リスタート
-            setupARView(worldMap: worldMap)
+            runARView(worldMap: worldMap)
             // entitySaveAnchorを保存
             entitySaveAnchors = (worldMap.anchors.filter { $0 is EntitySaveAnchor } as! [EntitySaveAnchor])
         } catch {
@@ -147,8 +147,7 @@ private struct ARViewContainer: UIViewRepresentable {
         #else
         // arViewの初期化
         arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
-        // セットアップ
-        setupARView()
+        runARView()
         // LiDARによるポリゴンを可視化
         // arView.debugOptions.insert(.showSceneUnderstanding)
         // LiDARによるポリゴンでオブジェクトを隠す
