@@ -7,44 +7,39 @@
 
 import SwiftUI
 import RealityKit
-import ARKit
+import MapKit
 
 var arView = ARView(frame: .zero)
 
 struct ContentView : View {
     private let objectData = ObjectData.sample
+    @State var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(
+            latitude: 37.334900,
+            longitude: -122.009020),
+        latitudinalMeters: 750,
+        longitudinalMeters: 750)
     @State private var sheetIsPresented = false
     @State private var arIsPresented = false
     
     var body: some View {
         NavigationStack {
-            VStack {
-                Button("PersistanceView") {
-                    arIsPresented.toggle()
+            Map(coordinateRegion: $region)
+                .ignoresSafeArea()
+                .navigationTitle("White Reef")
+                .navigationDestination(isPresented: $arIsPresented) {
+                    PersistanceView(objectData: objectData)
                 }
-                .padding(.bottom)
-                
-                NavigationLink {
-                    GeospatialView()
-                } label: {
-                    Text("GeospatialView")
+                .toolbar {
+                    ToolbarItem(placement: .bottomBar) {
+                        Button(action: {
+                            sheetIsPresented.toggle()
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.largeTitle)
+                        }
+                    }
                 }
-                .padding(.bottom)
-                
-                Button("Sheet") {
-                    sheetIsPresented.toggle()
-                }
-                .padding(.bottom)
-                
-                Button("print") {
-                    print(objectData.positions)
-                    print(objectData.normals)
-                }
-            }
-            .navigationTitle("White Reef")
-            .navigationDestination(isPresented: $arIsPresented) {
-                PersistanceView(objectData: objectData)
-            }
         }
         .sheet(isPresented: $sheetIsPresented) {
             ObjectSheet(arIsPresented: $arIsPresented, objectData: objectData)
