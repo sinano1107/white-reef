@@ -13,33 +13,35 @@ var arView = ARView(frame: .zero)
 
 struct ContentView : View {
     private let objectData = ObjectData.sample
-    @State var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(
-            latitude: 37.334900,
-            longitude: -122.009020),
-        latitudinalMeters: 750,
-        longitudinalMeters: 750)
+    @State var region = MKCoordinateRegion()
     @State private var sheetIsPresented = false
     @State private var arIsPresented = false
     
     var body: some View {
         NavigationStack {
-            Map(coordinateRegion: $region)
-                .ignoresSafeArea()
-                .navigationTitle("White Reef")
-                .navigationDestination(isPresented: $arIsPresented) {
-                    PersistanceView(objectData: objectData)
-                }
-                .toolbar {
-                    ToolbarItem(placement: .bottomBar) {
-                        Button(action: {
-                            sheetIsPresented.toggle()
-                        }) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.largeTitle)
-                        }
+            Map(coordinateRegion: $region,
+                interactionModes: .zoom,
+                showsUserLocation: true,
+                userTrackingMode: .constant(.follow))
+            .task {
+                let manager = CLLocationManager()
+                manager.requestWhenInUseAuthorization()
+            }
+            .ignoresSafeArea()
+            .navigationTitle("White Reef")
+            .navigationDestination(isPresented: $arIsPresented) {
+                PersistanceView(objectData: objectData)
+            }
+            .toolbar {
+                ToolbarItem(placement: .bottomBar) {
+                    Button(action: {
+                        sheetIsPresented.toggle()
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.largeTitle)
                     }
                 }
+            }
         }
         .sheet(isPresented: $sheetIsPresented) {
             ObjectSheet(arIsPresented: $arIsPresented, objectData: objectData)
