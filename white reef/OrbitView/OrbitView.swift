@@ -9,39 +9,82 @@ import SwiftUI
 import RealityKit
 
 struct OrbitView: View {
+    @State private var command: ARViewContainer.Command = .none
     @Binding var model: ModelEntity
-    
-    private let camera = PerspectiveCamera()
-    private let dragspeed: Float = 0.01
-    
-    @State private var radius: Float
-    @State private var magnify_start_radius: Float
-    @State private var rotationAngle: Float = 0
-    @State private var inclinationAngle: Float = 0
-    @State private var dragstart_rotation: Float = 0
-    @State private var dragstart_inclination: Float = 0
+    let radius: Float
     
     init(_ model: Binding<ModelEntity>, radius: Float = 6) {
         self._model = model
         self.radius = radius
-        self.magnify_start_radius = radius
     }
     
-    private struct ARViewContainer: UIViewRepresentable {
-        let entity: Entity
-        let camera: PerspectiveCamera
-        let firstRadius: Float
+    var body: some View {
+        ARViewContainer(command: $command, entity: model, firstRadius: radius)
+            .gesture(DragGesture()
+                .onChanged({ value in command = .handleDragChanged(value: value) })
+                .onEnded({ _ in command = .handleDragEnded }))
+            .gesture(MagnificationGesture()
+                .onChanged({ value in command = .handleMagnificationChanged(value: Float(value))})
+                .onEnded({ _ in command = .handleMagnificationEnded }))
+    }
+}
+
+private struct ARViewContainer: UIViewRepresentable {
+    @Binding var command: Command
+    let entity: Entity
+    let firstRadius: Float
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(firstRadius: firstRadius)
+    }
+    
+    func makeUIView(context: Context) -> ARView {
+        context.coordinator.arView
+    }
+    
+    func updateUIView(_ uiView: ARView, context: Context) {
+        // command
+        switch command {
+        case let .handleDragChanged(value):
+            context.coordinator.handleDragChanged(value: value)
+        case .handleDragEnded:
+            context.coordinator.handleDragEnded()
+        case let .handleMagnificationChanged(value):
+            context.coordinator.handleMagnificationChanged(value: value)
+        case .handleMagnificationEnded:
+            context.coordinator.handleMagnificationEnded()
+        case .none: break
+        }
         
-        func makeUIView(context: Context) -> ARView {
-            // arViewの初期化
-            #if targetEnvironment(simulator)
-            arView = ARView(frame: .zero)
-            #else
-            arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
-            #endif
-            // 別の画面でARを起動してから開くと歪みが出てしまうためモーションブラーを切る
-            arView.renderOptions.insert(.disableMotionBlur)
-            // 背景色を設定
+        // entityが変化した時に切り替える
+        // commandが送られてきても同じentityならばaddChildされないので大丈夫
+        let anchor = uiView.scene.anchors.first!
+        anchor.addChild(entity)
+        if anchor.children.count == 3 {
+            anchor.children.remove(at: 1)
+        }
+    }
+    
+    class Coordinator: NSObject {
+#if targetEnvironment(simulator)
+        let arView = ARView(frame: .zero)
+#else
+        let arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
+#endif
+        let camera = PerspectiveCamera()
+        
+        let dragspeed: Float = 0.01
+        private var radius: Float
+        private var magnify_start_radius: Float
+        private var rotationAngle: Float = 0
+        private var inclinationAngle: Float = 0
+        private var dragstart_rotation: Float = 0
+        private var dragstart_inclination: Float = 0
+        
+        init(firstRadius: Float) {
+            self.radius = firstRadius
+            self.magnify_start_radius = firstRadius
+            // 背景色を透明に設定
             arView.environment.background = .color(.clear)
             // アンカーを生成
             let anchor = AnchorEntity(world: .zero)
@@ -51,58 +94,62 @@ struct OrbitView: View {
             anchor.addChild(camera)
             // シーンにアンカーを追加
             arView.scene.addAnchor(anchor)
-            return arView
         }
         
-        func updateUIView(_ uiView: ARView, context: Context) {
-            let anchor = uiView.scene.anchors.first!
-            anchor.addChild(entity)
-            if anchor.children.count == 3 {
-                anchor.children.remove(at: 1)
+        /// カメラを更新
+        @MainActor func updateCamera() {
+            let translationTransform = Transform(
+                scale: .one,
+                rotation: simd_quatf(),
+                translation: SIMD3<Float>(0, 0, radius))
+            let combinedRotationTransform: Transform = .init(
+                pitch: inclinationAngle,
+                yaw: rotationAngle,
+                roll: 0)
+            let computed_transform = matrix_identity_float4x4 * combinedRotationTransform.matrix * translationTransform.matrix
+            camera.transform = Transform(matrix: computed_transform)
+        }
+        
+        /// ドラッグ
+        @MainActor func handleDragChanged(value: DragGesture.Value) {
+            let deltaX = Float(value.location.x - value.startLocation.x)
+            let deltaY = Float(value.location.y - value.startLocation.y)
+            rotationAngle = dragstart_rotation - deltaX * dragspeed
+            inclinationAngle = dragstart_inclination - deltaY * dragspeed
+            // 傾きが90度以下、-90度以上になるようにクランプ
+            if inclinationAngle > Float.pi / 2 {
+                inclinationAngle = Float.pi / 2
+            } else if inclinationAngle < -Float.pi / 2 {
+                inclinationAngle = -Float.pi / 2
             }
+            
+            updateCamera()
+        }
+        
+        /// ドラッグ終了
+        func handleDragEnded() {
+            dragstart_rotation = rotationAngle
+            dragstart_inclination = inclinationAngle
+        }
+        
+        /// 拡大・縮小
+        @MainActor func handleMagnificationChanged(value: Float) {
+            radius = magnify_start_radius / value
+            updateCamera()
+        }
+        
+        /// 拡大・縮小終了
+        func handleMagnificationEnded() {
+            magnify_start_radius = radius
         }
     }
     
-    @MainActor private func updateCamera() {
-        let translationTransform = Transform(
-            scale: .one,
-            rotation: simd_quatf(),
-            translation: SIMD3<Float>(0, 0, radius))
-        let combinedRotationTransform: Transform = .init(
-            pitch: inclinationAngle,
-            yaw: rotationAngle,
-            roll: 0)
-        let computed_transform = matrix_identity_float4x4 * combinedRotationTransform.matrix * translationTransform.matrix
-        camera.transform = Transform(matrix: computed_transform)
-    }
-    
-    var body: some View {
-        ARViewContainer(entity: model, camera: camera, firstRadius: radius)
-            // ドラッグ
-            .gesture(DragGesture().onChanged({ value in
-                let deltaX = Float(value.location.x - value.startLocation.x)
-                let deltaY = Float(value.location.y - value.startLocation.y)
-                rotationAngle = dragstart_rotation - deltaX * dragspeed
-                inclinationAngle = dragstart_inclination - deltaY * dragspeed
-                // 傾きが90度以下、-90度以上になるようにクランプ
-                if inclinationAngle > Float.pi / 2 {
-                    inclinationAngle = Float.pi / 2
-                } else if inclinationAngle < -Float.pi / 2 {
-                    inclinationAngle = -Float.pi / 2
-                }
-                
-                updateCamera()
-            }).onEnded({ _ in
-                dragstart_rotation = rotationAngle
-                dragstart_inclination = inclinationAngle
-            }))
-            // 拡大・縮小
-            .gesture(MagnificationGesture().onChanged({ value in
-                radius = magnify_start_radius / Float(value)
-                updateCamera()
-            }).onEnded({ _ in
-                magnify_start_radius = radius
-            }))
+    enum Command {
+        case handleDragChanged(value: DragGesture.Value)
+        case handleDragEnded
+        case handleMagnificationChanged(value: Float)
+        case handleMagnificationEnded
+        case none
     }
 }
 
