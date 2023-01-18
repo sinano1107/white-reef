@@ -9,13 +9,14 @@ import SwiftUI
 import RealityKit
 
 struct OrbitView: View {
+    @State var command: ARViewContainer.Command = .none
     @Binding var model: ModelEntity
     
     private let camera = PerspectiveCamera()
     private let dragspeed: Float = 0.01
     
-    @State private var radius: Float
-    @State private var magnify_start_radius: Float
+    @State private var radius: Float = 6
+    @State private var magnify_start_radius: Float = 6
     @State private var rotationAngle: Float = 0
     @State private var inclinationAngle: Float = 0
     @State private var dragstart_rotation: Float = 0
@@ -23,17 +24,16 @@ struct OrbitView: View {
     
     init(_ model: Binding<ModelEntity>, radius: Float = 6) {
         self._model = model
-        self.radius = radius
-        self.magnify_start_radius = radius
     }
     
-    private struct ARViewContainer: UIViewRepresentable {
+    struct ARViewContainer: UIViewRepresentable {
+        @Binding var command: Command
         let entity: Entity
         let camera: PerspectiveCamera
         let firstRadius: Float
         
         func makeCoordinator() -> Coordinator {
-            Coordinator(self)
+            Coordinator(firstRadius: firstRadius)
         }
         
         func makeUIView(context: Context) -> ARView {
@@ -41,6 +41,15 @@ struct OrbitView: View {
         }
         
         func updateUIView(_ uiView: ARView, context: Context) {
+            // command
+            switch command {
+            case let .handleDragChanged(value):
+                context.coordinator.handleDragChanged(value: value)
+            case .none: break
+            }
+            
+            // entityが変化した時に切り替える
+            // commandが送られてきても同じentityならばaddChildされないので大丈夫
             let anchor = uiView.scene.anchors.first!
             anchor.addChild(entity)
             if anchor.children.count == 3 {
@@ -54,22 +63,65 @@ struct OrbitView: View {
             #else
             let arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
             #endif
-            let parent: ARViewContainer
             let camera = PerspectiveCamera()
             
-            init(_ parent: ARViewContainer) {
-                self.parent = parent
+            let dragspeed: Float = 0.01
+            private var radius: Float
+            private var magnify_start_radius: Float
+            private var rotationAngle: Float = 0
+            private var inclinationAngle: Float = 0
+            private var dragstart_rotation: Float = 0
+            private var dragstart_inclination: Float = 0
+            
+            init(firstRadius: Float) {
+                self.radius = firstRadius
+                self.magnify_start_radius = firstRadius
                 // 背景色を透明に設定
                 arView.environment.background = .color(.clear)
                 // アンカーを生成
                 let anchor = AnchorEntity(world: .zero)
                 // カメラのポジションを変更
-                camera.position = [0, 0, parent.firstRadius]
+                camera.position = [0, 0, firstRadius]
                 // アンカーにカメラを追加
                 anchor.addChild(camera)
                 // シーンにアンカーを追加
                 arView.scene.addAnchor(anchor)
             }
+            
+            /// カメラを更新
+            @MainActor func updateCamera() {
+                let translationTransform = Transform(
+                    scale: .one,
+                    rotation: simd_quatf(),
+                    translation: SIMD3<Float>(0, 0, radius))
+                let combinedRotationTransform: Transform = .init(
+                    pitch: inclinationAngle,
+                    yaw: rotationAngle,
+                    roll: 0)
+                let computed_transform = matrix_identity_float4x4 * combinedRotationTransform.matrix * translationTransform.matrix
+                camera.transform = Transform(matrix: computed_transform)
+            }
+            
+            /// ドラッグ
+            @MainActor func handleDragChanged(value: DragGesture.Value) {
+                let deltaX = Float(value.location.x - value.startLocation.x)
+                let deltaY = Float(value.location.y - value.startLocation.y)
+                rotationAngle = dragstart_rotation - deltaX * dragspeed
+                inclinationAngle = dragstart_inclination - deltaY * dragspeed
+                // 傾きが90度以下、-90度以上になるようにクランプ
+                if inclinationAngle > Float.pi / 2 {
+                    inclinationAngle = Float.pi / 2
+                } else if inclinationAngle < -Float.pi / 2 {
+                    inclinationAngle = -Float.pi / 2
+                }
+                
+                updateCamera()
+            }
+        }
+        
+        enum Command {
+            case handleDragChanged(value: DragGesture.Value)
+            case none
         }
     }
     
@@ -87,22 +139,11 @@ struct OrbitView: View {
     }
     
     var body: some View {
-        ARViewContainer(entity: model, camera: camera, firstRadius: radius)
+        ARViewContainer(command: $command, entity: model, camera: camera, firstRadius: radius)
             // ドラッグ
-            .gesture(DragGesture().onChanged({ value in
-                let deltaX = Float(value.location.x - value.startLocation.x)
-                let deltaY = Float(value.location.y - value.startLocation.y)
-                rotationAngle = dragstart_rotation - deltaX * dragspeed
-                inclinationAngle = dragstart_inclination - deltaY * dragspeed
-                // 傾きが90度以下、-90度以上になるようにクランプ
-                if inclinationAngle > Float.pi / 2 {
-                    inclinationAngle = Float.pi / 2
-                } else if inclinationAngle < -Float.pi / 2 {
-                    inclinationAngle = -Float.pi / 2
-                }
-                
-                updateCamera()
-            }).onEnded({ _ in
+            .gesture(DragGesture()
+                .onChanged({ value in command = .handleDragChanged(value: value) })
+                .onEnded({ _ in
                 dragstart_rotation = rotationAngle
                 dragstart_inclination = inclinationAngle
             }))
