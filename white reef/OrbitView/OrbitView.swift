@@ -9,27 +9,18 @@ import SwiftUI
 import RealityKit
 
 struct OrbitView: View {
-    @State var command: ARViewContainer.Command = .none
+    @State private var command: ARViewContainer.Command = .none
     @Binding var model: ModelEntity
-    
-    private let camera = PerspectiveCamera()
-    private let dragspeed: Float = 0.01
-    
-    @State private var radius: Float = 6
-    @State private var magnify_start_radius: Float = 6
-    @State private var rotationAngle: Float = 0
-    @State private var inclinationAngle: Float = 0
-    @State private var dragstart_rotation: Float = 0
-    @State private var dragstart_inclination: Float = 0
+    let radius: Float
     
     init(_ model: Binding<ModelEntity>, radius: Float = 6) {
         self._model = model
+        self.radius = radius
     }
     
     struct ARViewContainer: UIViewRepresentable {
         @Binding var command: Command
         let entity: Entity
-        let camera: PerspectiveCamera
         let firstRadius: Float
         
         func makeCoordinator() -> Coordinator {
@@ -151,21 +142,8 @@ struct OrbitView: View {
         }
     }
     
-    @MainActor private func updateCamera() {
-        let translationTransform = Transform(
-            scale: .one,
-            rotation: simd_quatf(),
-            translation: SIMD3<Float>(0, 0, radius))
-        let combinedRotationTransform: Transform = .init(
-            pitch: inclinationAngle,
-            yaw: rotationAngle,
-            roll: 0)
-        let computed_transform = matrix_identity_float4x4 * combinedRotationTransform.matrix * translationTransform.matrix
-        camera.transform = Transform(matrix: computed_transform)
-    }
-    
     var body: some View {
-        ARViewContainer(command: $command, entity: model, camera: camera, firstRadius: radius)
+        ARViewContainer(command: $command, entity: model, firstRadius: radius)
             // ドラッグ
             .gesture(DragGesture()
                 .onChanged({ value in command = .handleDragChanged(value: value) })
