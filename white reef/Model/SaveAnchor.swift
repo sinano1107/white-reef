@@ -62,11 +62,15 @@ class SaveAnchor: ARAnchor {
     }
     
     func generateAnchorEntity() -> AnchorEntity {
+        #if targetEnvironment(simulator)
+        return AnchorEntity()
+        #else
         let anchorEntity = AnchorEntity(anchor: self)
         let object = objectData.generate(moveTheOriginDown: true)
         object.scale = scale
         anchorEntity.addChild(object)
         return anchorEntity
+        #endif
     }
     
     static let sample = SaveAnchor(objectData: ObjectData.sample, scale: simd_float3(), transform: float4x4())
