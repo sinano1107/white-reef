@@ -42,8 +42,30 @@ struct ContentView : View {
 }
 
 struct MapContainer: UIViewRepresentable {
+    let manager = CLLocationManager()
+    let view = MKMapView()
+    
     func makeUIView(context: Context) -> some MKMapView {
-        return MKMapView()
+        // ユーザーの現在位置を表示
+        view.showsUserLocation = true
+        
+        // 現在位置を取得できればそこを中心に据える
+        // 取得できなければ新宿御苑を表示する
+        let location = manager.location
+        let center = location != nil
+        ? location!.coordinate
+        : CLLocationCoordinate2D(
+            latitude: 35.68478,
+            longitude:  139.71)
+        view.setRegion(
+            MKCoordinateRegion(
+                center: center,
+                span: MKCoordinateSpan(
+                    latitudeDelta: 0.0025,
+                    longitudeDelta: 0.0025)),
+            animated: true)
+        
+        return view
     }
     
     func updateUIView(_ uiView: UIViewType, context: Context) {}
