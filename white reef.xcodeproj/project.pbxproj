@@ -29,6 +29,7 @@
 		9FD989AF29704560008008E6 /* RandomPointInHemiSphere.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989AE29704560008008E6 /* RandomPointInHemiSphere.swift */; };
 		9FE08C382968427100665752 /* APIKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FE08C372968427100665752 /* APIKey.swift */; };
 		9FEF2B9029607B9700EF759E /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEF2B8F29607B9700EF759E /* Utilities.swift */; };
+		9FFFCB862977A33100071897 /* ARPlaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FFFCB852977A33100071897 /* ARPlaceView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +57,7 @@
 		9FD989AE29704560008008E6 /* RandomPointInHemiSphere.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomPointInHemiSphere.swift; sourceTree = "<group>"; };
 		9FE08C372968427100665752 /* APIKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKey.swift; sourceTree = "<group>"; };
 		9FEF2B8F29607B9700EF759E /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		9FFFCB852977A33100071897 /* ARPlaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARPlaceView.swift; sourceTree = "<group>"; };
 		AA02404073FC7D5BADBF99A1 /* Pods-white reef.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-white reef.debug.xcconfig"; path = "Target Support Files/Pods-white reef/Pods-white reef.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -117,6 +119,7 @@
 				9FEF2B8F29607B9700EF759E /* Utilities.swift */,
 				9FE08C372968427100665752 /* APIKey.swift */,
 				9F43CEF9295D982B00ABB3B0 /* Assets.xcassets */,
+				9FFFCB842977A2BA00071897 /* ARViews */,
 				9F56425B2971406A00695A6D /* OrbitView */,
 				9F56426029737E2500695A6D /* Model */,
 				9FD9899B296FD684008008E6 /* RandomObject */,
@@ -172,6 +175,14 @@
 				9FD989AA297044AB008008E6 /* isPositiveDefinite.swift */,
 			);
 			path = "Accelerate-Linear-Solvers";
+			sourceTree = "<group>";
+		};
+		9FFFCB842977A2BA00071897 /* ARViews */ = {
+			isa = PBXGroup;
+			children = (
+				9FFFCB852977A33100071897 /* ARPlaceView.swift */,
+			);
+			path = ARViews;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -325,6 +336,7 @@
 				9FE08C382968427100665752 /* APIKey.swift in Sources */,
 				9F56425A29713C2200695A6D /* CollisionDetection.swift in Sources */,
 				9F43CEF4295D982A00ABB3B0 /* AppDelegate.swift in Sources */,
+				9FFFCB862977A33100071897 /* ARPlaceView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
