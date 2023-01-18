@@ -32,26 +32,12 @@ struct OrbitView: View {
         let camera: PerspectiveCamera
         let firstRadius: Float
         
+        func makeCoordinator() -> Coordinator {
+            Coordinator(self)
+        }
+        
         func makeUIView(context: Context) -> ARView {
-            // arViewの初期化
-            #if targetEnvironment(simulator)
-            arView = ARView(frame: .zero)
-            #else
-            arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
-            #endif
-            // 別の画面でARを起動してから開くと歪みが出てしまうためモーションブラーを切る
-            arView.renderOptions.insert(.disableMotionBlur)
-            // 背景色を設定
-            arView.environment.background = .color(.clear)
-            // アンカーを生成
-            let anchor = AnchorEntity(world: .zero)
-            // カメラのポジションを変更
-            camera.position = [0, 0, firstRadius]
-            // アンカーにカメラを追加
-            anchor.addChild(camera)
-            // シーンにアンカーを追加
-            arView.scene.addAnchor(anchor)
-            return arView
+            context.coordinator.arView
         }
         
         func updateUIView(_ uiView: ARView, context: Context) {
@@ -59,6 +45,30 @@ struct OrbitView: View {
             anchor.addChild(entity)
             if anchor.children.count == 3 {
                 anchor.children.remove(at: 1)
+            }
+        }
+        
+        class Coordinator: NSObject {
+            #if targetEnvironment(simulator)
+            let arView = ARView(frame: .zero)
+            #else
+            let arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
+            #endif
+            let parent: ARViewContainer
+            let camera = PerspectiveCamera()
+            
+            init(_ parent: ARViewContainer) {
+                self.parent = parent
+                // 背景色を透明に設定
+                arView.environment.background = .color(.clear)
+                // アンカーを生成
+                let anchor = AnchorEntity(world: .zero)
+                // カメラのポジションを変更
+                camera.position = [0, 0, parent.firstRadius]
+                // アンカーにカメラを追加
+                anchor.addChild(camera)
+                // シーンにアンカーを追加
+                arView.scene.addAnchor(anchor)
             }
         }
     }
