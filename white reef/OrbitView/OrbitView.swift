@@ -49,6 +49,8 @@ struct OrbitView: View {
                 context.coordinator.handleDragEnded()
             case let .handleMagnificationChanged(value):
                 context.coordinator.handleMagnificationChanged(value: value)
+            case .handleMagnificationEnded:
+                context.coordinator.handleMagnificationEnded()
             case .none: break
             }
             
@@ -133,12 +135,18 @@ struct OrbitView: View {
                 radius = magnify_start_radius / value
                 updateCamera()
             }
+            
+            /// 拡大・縮小終了
+            func handleMagnificationEnded() {
+                magnify_start_radius = radius
+            }
         }
         
         enum Command {
             case handleDragChanged(value: DragGesture.Value)
             case handleDragEnded
             case handleMagnificationChanged(value: Float)
+            case handleMagnificationEnded
             case none
         }
     }
@@ -165,9 +173,7 @@ struct OrbitView: View {
             // 拡大・縮小
             .gesture(MagnificationGesture()
                 .onChanged({ value in command = .handleMagnificationChanged(value: Float(value))})
-                .onEnded({ _ in
-                magnify_start_radius = radius
-            }))
+                .onEnded({ _ in command = .handleMagnificationEnded }))
     }
 }
 
