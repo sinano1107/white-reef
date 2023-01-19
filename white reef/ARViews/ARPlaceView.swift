@@ -14,25 +14,32 @@ struct ARPlaceView: View {
     @State private var command: ARViewRepresentable.Command = .none
     
     var body: some View {
-        ARViewRepresentable(objectData: objectData, command: $command)
-            .ignoresSafeArea()
-            .onTapGesture(coordinateSpace: .global) { location in
-                command = .handleTapGesture(location: location)
+        ZStack(alignment: .bottomLeading) {
+            ARViewRepresentable(objectData: objectData, command: $command)
+                .ignoresSafeArea()
+                .onTapGesture(coordinateSpace: .global) { location in
+                    command = .handleTapGesture(location: location)
+                }
+            Button("ローカルセーブ") {
+                command = .localSave
             }
+        }
     }
 }
 
 private struct ARViewRepresentable: UIViewRepresentable {
     let objectData: ObjectData
     @Binding var command: Command
+    @AppStorage("ar-world-map") private var arWorldMap = Data()
     
     enum Command {
         case handleTapGesture(location: CGPoint)
+        case localSave
         case none
     }
     
     func makeCoordinator() -> Coordinator {
-        Coordinator(objectData: objectData)
+        Coordinator(self)
     }
     
     func makeUIView(context: Context) -> ARView {
@@ -43,11 +50,14 @@ private struct ARViewRepresentable: UIViewRepresentable {
         switch command {
         case let .handleTapGesture(location):
             context.coordinator.handleTapGesture(location: location)
+        case .localSave:
+            context.coordinator.localSave()
         case .none: break
         }
     }
     
     class Coordinator: NSObject {
+        let parent: ARViewRepresentable
 #if targetEnvironment(simulator)
         let arView = ARView(frame: .zero)
 #else
@@ -56,7 +66,8 @@ private struct ARViewRepresentable: UIViewRepresentable {
         var anchor: AnchorEntity
         let object: ModelEntity
         
-        init(objectData: ObjectData) {
+        init(_ parent: ARViewRepresentable) {
+            self.parent = parent
 #if targetEnvironment(simulator)
             anchor = AnchorEntity()
             object = ModelEntity()
@@ -73,7 +84,7 @@ private struct ARViewRepresentable: UIViewRepresentable {
             
             // objectを追加
             anchor = AnchorEntity(plane: .horizontal)
-            object = objectData.generate(moveTheOriginDown: true)
+            object = parent.objectData.generate(moveTheOriginDown: true)
             anchor.addChild(object)
             arView.scene.addAnchor(anchor)
             
@@ -104,6 +115,25 @@ private struct ARViewRepresentable: UIViewRepresentable {
             anchor.addChild(object)
             arView.scene.addAnchor(anchor)
 #endif
+        }
+        
+        /// ARkitの標準機能による永続化
+        func localSave() {
+            arView.session.getCurrentWorldMap { worldMap, _ in
+                guard let worldMap = worldMap else { fatalError("[エラー] worldMapがnil") }
+                worldMap.anchors.removeAll()
+                worldMap.anchors.append(SaveAnchor(
+                    objectData: self.parent.objectData,
+                    scale: self.object.scale,
+                    transform: self.object.transformMatrix(relativeTo: nil)))
+                do {
+                    let archivedMap = try NSKeyedArchiver.archivedData(withRootObject: worldMap, requiringSecureCoding: true)
+                    self.parent.arWorldMap = archivedMap
+                    print("セーブ完了しました")
+                } catch {
+                    fatalError("[エラー] mapのアーカイブに失敗: \(error)")
+                }
+            }
         }
     }
 }
