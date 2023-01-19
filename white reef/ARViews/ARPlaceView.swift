@@ -58,6 +58,8 @@ private struct ARViewRepresentable: UIViewRepresentable {
         
         init(objectData: ObjectData) {
 #if targetEnvironment(simulator)
+            anchor = AnchorEntity()
+            object = ModelEntity()
 #else
             // config
             let config = ARWorldTrackingConfiguration()
@@ -83,6 +85,8 @@ private struct ARViewRepresentable: UIViewRepresentable {
         
         /// タップされた時
         func handleTapGesture(location: CGPoint) {
+#if targetEnvironment(simulator)
+#else
             // レイキャスト
             guard let result = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any).first
             else { return }
@@ -99,6 +103,7 @@ private struct ARViewRepresentable: UIViewRepresentable {
             object.setPosition([0, 0, 0], relativeTo: anchor)
             anchor.addChild(object)
             arView.scene.addAnchor(anchor)
+#endif
         }
     }
 }
