@@ -11,15 +11,25 @@ import ARKit
 
 struct ARPlaceView: View {
     let objectData: ObjectData
+    @State private var command: ARViewRepresentable.Command = .none
     
     var body: some View {
-        ARViewRepresentable(objectData: objectData)
+        ARViewRepresentable(objectData: objectData, command: $command)
             .ignoresSafeArea()
+            .onTapGesture(coordinateSpace: .global) { location in
+                command = .handleTapGesture(location: location)
+            }
     }
 }
 
 private struct ARViewRepresentable: UIViewRepresentable {
     let objectData: ObjectData
+    @Binding var command: Command
+    
+    enum Command {
+        case handleTapGesture(location: CGPoint)
+        case none
+    }
     
     func makeCoordinator() -> Coordinator {
         Coordinator(objectData: objectData)
@@ -29,18 +39,26 @@ private struct ARViewRepresentable: UIViewRepresentable {
         context.coordinator.arView
     }
     
-    func updateUIView(_ uiView: ARView, context: Context) {}
+    func updateUIView(_ uiView: ARView, context: Context) {
+        switch command {
+        case let .handleTapGesture(location):
+            context.coordinator.handleTapGesture(location: location)
+        case .none: break
+        }
+    }
     
     class Coordinator: NSObject {
-        #if targetEnvironment(simulator)
+#if targetEnvironment(simulator)
         let arView = ARView(frame: .zero)
-        #else
+#else
         let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
-        #endif
+#endif
+        var anchor: AnchorEntity
+        let object: ModelEntity
         
         init(objectData: ObjectData) {
-            #if targetEnvironment(simulator)
-            #else
+#if targetEnvironment(simulator)
+#else
             // config
             let config = ARWorldTrackingConfiguration()
             config.planeDetection = .horizontal
@@ -52,15 +70,35 @@ private struct ARViewRepresentable: UIViewRepresentable {
             arView.session.run(config)
             
             // objectを追加
-            let anchor = AnchorEntity(plane: .horizontal)
-            let object = objectData.generate(moveTheOriginDown: true)
+            anchor = AnchorEntity(plane: .horizontal)
+            object = objectData.generate(moveTheOriginDown: true)
             anchor.addChild(object)
             arView.scene.addAnchor(anchor)
             
             // objectをinstallGestureの対象に
             object.generateCollisionShapes(recursive: false)
             arView.installGestures(for: object)
-            #endif
+#endif
+        }
+        
+        /// タップされた時
+        func handleTapGesture(location: CGPoint) {
+            // レイキャスト
+            guard let result = arView.raycast(from: location, allowing: .estimatedPlane, alignment: .any).first
+            else { return }
+            
+            // ARAnchorを追加
+            let arAnchor = ARAnchor(transform: result.worldTransform)
+            arView.session.add(anchor: arAnchor)
+            
+            // 既存のアンカーを削除
+            arView.scene.removeAnchor(anchor)
+            // 新しくアンカーを生成
+            anchor = AnchorEntity(anchor: arAnchor)
+            // objectのポジションのみリセット
+            object.setPosition([0, 0, 0], relativeTo: anchor)
+            anchor.addChild(object)
+            arView.scene.addAnchor(anchor)
         }
     }
 }
