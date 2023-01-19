@@ -20,9 +20,6 @@ struct OrbitView: View {
     
     var body: some View {
         ARViewContainer(command: $command, entity: model, firstRadius: radius)
-            .gesture(DragGesture()
-                .onChanged({ value in command = .handleDragChanged(value: value) })
-                .onEnded({ _ in command = .handleDragEnded }))
             .gesture(MagnificationGesture()
                 .onChanged({ value in command = .handleMagnificationChanged(value: Float(value))})
                 .onEnded({ _ in command = .handleMagnificationEnded }))
@@ -39,16 +36,13 @@ private struct ARViewContainer: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> ARView {
-        context.coordinator.arView
+        context.coordinator.addGestures()
+        return context.coordinator.arView
     }
     
     func updateUIView(_ uiView: ARView, context: Context) {
         // command
         switch command {
-        case let .handleDragChanged(value):
-            context.coordinator.handleDragChanged(value: value)
-        case .handleDragEnded:
-            context.coordinator.handleDragEnded()
         case let .handleMagnificationChanged(value):
             context.coordinator.handleMagnificationChanged(value: value)
         case .handleMagnificationEnded:
@@ -96,6 +90,32 @@ private struct ARViewContainer: UIViewRepresentable {
             arView.scene.addAnchor(anchor)
         }
         
+        func addGestures() {
+            let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(sender:)))
+            arView.addGestureRecognizer(panGesture)
+        }
+        
+        @MainActor @objc func handlePan(sender: UIPanGestureRecognizer) {
+            // 終了時
+            if sender.state == .ended {
+                dragstart_rotation = rotationAngle
+                dragstart_inclination = inclinationAngle
+                return
+            }
+            /// パンのスタートからの移動距離
+            let res = sender.translation(in: arView)
+            rotationAngle = dragstart_rotation - Float(res.x) * dragspeed
+            inclinationAngle = dragstart_inclination - Float(res.y) * dragspeed
+            // 傾きが90度以下、-90度以上になるようにクランプ
+            if inclinationAngle > Float.pi / 2 {
+                inclinationAngle = Float.pi / 2
+            } else if inclinationAngle < -Float.pi / 2 {
+                inclinationAngle = -Float.pi / 2
+            }
+            // アップデート
+            updateCamera()
+        }
+        
         /// カメラを更新
         @MainActor func updateCamera() {
             let translationTransform = Transform(
@@ -108,28 +128,6 @@ private struct ARViewContainer: UIViewRepresentable {
                 roll: 0)
             let computed_transform = matrix_identity_float4x4 * combinedRotationTransform.matrix * translationTransform.matrix
             camera.transform = Transform(matrix: computed_transform)
-        }
-        
-        /// ドラッグ
-        @MainActor func handleDragChanged(value: DragGesture.Value) {
-            let deltaX = Float(value.location.x - value.startLocation.x)
-            let deltaY = Float(value.location.y - value.startLocation.y)
-            rotationAngle = dragstart_rotation - deltaX * dragspeed
-            inclinationAngle = dragstart_inclination - deltaY * dragspeed
-            // 傾きが90度以下、-90度以上になるようにクランプ
-            if inclinationAngle > Float.pi / 2 {
-                inclinationAngle = Float.pi / 2
-            } else if inclinationAngle < -Float.pi / 2 {
-                inclinationAngle = -Float.pi / 2
-            }
-            
-            updateCamera()
-        }
-        
-        /// ドラッグ終了
-        func handleDragEnded() {
-            dragstart_rotation = rotationAngle
-            dragstart_inclination = inclinationAngle
         }
         
         /// 拡大・縮小
@@ -145,8 +143,6 @@ private struct ARViewContainer: UIViewRepresentable {
     }
     
     enum Command {
-        case handleDragChanged(value: DragGesture.Value)
-        case handleDragEnded
         case handleMagnificationChanged(value: Float)
         case handleMagnificationEnded
         case none
