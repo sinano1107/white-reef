@@ -9,7 +9,6 @@ import SwiftUI
 import RealityKit
 
 struct OrbitView: View {
-    @State private var command: ARViewContainer.Command = .none
     @Binding var model: ModelEntity
     let radius: Float
     
@@ -19,15 +18,11 @@ struct OrbitView: View {
     }
     
     var body: some View {
-        ARViewContainer(command: $command, entity: model, firstRadius: radius)
-            .gesture(MagnificationGesture()
-                .onChanged({ value in command = .handleMagnificationChanged(value: Float(value))})
-                .onEnded({ _ in command = .handleMagnificationEnded }))
+        ARViewContainer(entity: model, firstRadius: radius)
     }
 }
 
 private struct ARViewContainer: UIViewRepresentable {
-    @Binding var command: Command
     let entity: Entity
     let firstRadius: Float
     
@@ -41,17 +36,7 @@ private struct ARViewContainer: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: ARView, context: Context) {
-        // command
-        switch command {
-        case let .handleMagnificationChanged(value):
-            context.coordinator.handleMagnificationChanged(value: value)
-        case .handleMagnificationEnded:
-            context.coordinator.handleMagnificationEnded()
-        case .none: break
-        }
-        
         // entityが変化した時に切り替える
-        // commandが送られてきても同じentityならばaddChildされないので大丈夫
         let anchor = uiView.scene.anchors.first!
         anchor.addChild(entity)
         if anchor.children.count == 3 {
@@ -92,9 +77,12 @@ private struct ARViewContainer: UIViewRepresentable {
         
         func addGestures() {
             let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(sender:)))
+            let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(sender:)))
             arView.addGestureRecognizer(panGesture)
+            arView.addGestureRecognizer(pinchGesture)
         }
         
+        /// パンジェスチャー
         @MainActor @objc func handlePan(sender: UIPanGestureRecognizer) {
             // 終了時
             if sender.state == .ended {
@@ -116,6 +104,16 @@ private struct ARViewContainer: UIViewRepresentable {
             updateCamera()
         }
         
+        /// ピンチジェスチャー
+        @MainActor @objc func handlePinch(sender: UIPinchGestureRecognizer) {
+            if sender.state == .ended {
+                magnify_start_radius = radius
+                return
+            }
+            radius = magnify_start_radius / Float(sender.scale)
+            updateCamera()
+        }
+        
         /// カメラを更新
         @MainActor func updateCamera() {
             let translationTransform = Transform(
@@ -129,23 +127,6 @@ private struct ARViewContainer: UIViewRepresentable {
             let computed_transform = matrix_identity_float4x4 * combinedRotationTransform.matrix * translationTransform.matrix
             camera.transform = Transform(matrix: computed_transform)
         }
-        
-        /// 拡大・縮小
-        @MainActor func handleMagnificationChanged(value: Float) {
-            radius = magnify_start_radius / value
-            updateCamera()
-        }
-        
-        /// 拡大・縮小終了
-        func handleMagnificationEnded() {
-            magnify_start_radius = radius
-        }
-    }
-    
-    enum Command {
-        case handleMagnificationChanged(value: Float)
-        case handleMagnificationEnded
-        case none
     }
 }
 
