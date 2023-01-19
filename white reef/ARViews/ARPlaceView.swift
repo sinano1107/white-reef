@@ -44,6 +44,10 @@ private struct ARViewRepresentable: UIViewRepresentable {
             let config = ARWorldTrackingConfiguration()
             config.planeDetection = .horizontal
             config.environmentTexturing = .automatic
+            if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) {
+                config.sceneReconstruction = .mesh
+                arView.environment.sceneUnderstanding.options.insert(.occlusion)
+            }
             arView.session.run(config)
             
             let anchor = AnchorEntity(plane: .horizontal)
