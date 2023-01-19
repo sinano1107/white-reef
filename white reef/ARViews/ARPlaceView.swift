@@ -14,6 +14,7 @@ struct ARPlaceView: View {
     
     var body: some View {
         ARViewRepresentable(objectData: objectData)
+            .ignoresSafeArea()
     }
 }
 
@@ -38,6 +39,8 @@ private struct ARViewRepresentable: UIViewRepresentable {
         #endif
         
         init(objectData: ObjectData) {
+            #if targetEnvironment(simulator)
+            #else
             let config = ARWorldTrackingConfiguration()
             config.planeDetection = .horizontal
             config.environmentTexturing = .automatic
@@ -46,6 +49,7 @@ private struct ARViewRepresentable: UIViewRepresentable {
             let anchor = AnchorEntity(plane: .horizontal)
             anchor.addChild(objectData.generate(moveTheOriginDown: true))
             arView.scene.addAnchor(anchor)
+            #endif
         }
     }
 }
