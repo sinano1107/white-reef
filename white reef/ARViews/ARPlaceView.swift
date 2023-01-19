@@ -10,15 +10,18 @@ import RealityKit
 import ARKit
 
 struct ARPlaceView: View {
+    let objectData: ObjectData
+    
     var body: some View {
-        ARViewRepresentable()
+        ARViewRepresentable(objectData: objectData)
     }
 }
 
 private struct ARViewRepresentable: UIViewRepresentable {
+    let objectData: ObjectData
     
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(objectData: objectData)
     }
     
     func makeUIView(context: Context) -> ARView {
@@ -34,15 +37,21 @@ private struct ARViewRepresentable: UIViewRepresentable {
         let arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
         #endif
         
-        override init() {
+        init(objectData: ObjectData) {
             let config = ARWorldTrackingConfiguration()
+            config.planeDetection = .horizontal
+            config.environmentTexturing = .automatic
             arView.session.run(config)
+            
+            let anchor = AnchorEntity(plane: .horizontal)
+            anchor.addChild(objectData.generate(moveTheOriginDown: true))
+            arView.scene.addAnchor(anchor)
         }
     }
 }
 
 struct ARPlaceView_Previews: PreviewProvider {
     static var previews: some View {
-        ARPlaceView()
+        ARPlaceView(objectData: ObjectData.sample)
     }
 }

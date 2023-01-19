@@ -18,16 +18,11 @@ struct ContentView : View {
     
     var body: some View {
         NavigationStack {
-            NavigationLink {
-                ARPlaceView()
-            } label: {
-                Text("ARPlaceView")
-            }
             MapContainer()
                 .ignoresSafeArea()
                 .navigationTitle("White Reef")
                 .navigationDestination(isPresented: $arIsPresented) {
-//                    PersistanceView(objectData: objectData)
+                    ARPlaceView(objectData: objectData)
                 }
                 .toolbar {
                     ToolbarItem(placement: .bottomBar) {
