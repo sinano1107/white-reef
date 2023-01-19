@@ -41,6 +41,7 @@ private struct ARViewRepresentable: UIViewRepresentable {
         init(objectData: ObjectData) {
             #if targetEnvironment(simulator)
             #else
+            // config
             let config = ARWorldTrackingConfiguration()
             config.planeDetection = .horizontal
             config.environmentTexturing = .automatic
@@ -50,9 +51,15 @@ private struct ARViewRepresentable: UIViewRepresentable {
             }
             arView.session.run(config)
             
+            // objectを追加
             let anchor = AnchorEntity(plane: .horizontal)
-            anchor.addChild(objectData.generate(moveTheOriginDown: true))
+            let object = objectData.generate(moveTheOriginDown: true)
+            anchor.addChild(object)
             arView.scene.addAnchor(anchor)
+            
+            // objectをinstallGestureの対象に
+            object.generateCollisionShapes(recursive: false)
+            arView.installGestures(for: object)
             #endif
         }
     }
