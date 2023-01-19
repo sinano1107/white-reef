@@ -8,21 +8,7 @@
 import SwiftUI
 import RealityKit
 
-struct OrbitView: View {
-    @Binding var model: ModelEntity
-    let radius: Float
-    
-    init(_ model: Binding<ModelEntity>, radius: Float = 6) {
-        self._model = model
-        self.radius = radius
-    }
-    
-    var body: some View {
-        ARViewContainer(entity: model, firstRadius: radius)
-    }
-}
-
-private struct ARViewContainer: UIViewRepresentable {
+struct OrbitView: UIViewRepresentable {
     let entity: Entity
     let firstRadius: Float
     
@@ -134,6 +120,6 @@ struct OrbitView_Previews: PreviewProvider {
     @State static var model = ModelEntity(mesh: .generateBox(size: 1), materials: [SimpleMaterial()])
     
     static var previews: some View {
-        OrbitView($model)
+        OrbitView(entity: model, firstRadius: 6)
     }
 }
