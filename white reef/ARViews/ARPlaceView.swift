@@ -10,8 +10,11 @@ import RealityKit
 import ARKit
 
 struct ARPlaceView: View {
-    private let capsule = ARViewCapsule()
-    let objectData: ObjectData
+    private let capsule: ARViewCapsule
+    
+    init(objectData: ObjectData) {
+        capsule = ARViewCapsule(objectData: objectData)
+    }
     
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -126,12 +129,30 @@ private struct ARViewRepresentable: UIViewRepresentable {
 
 private class ARViewCapsule {
     private var arView: ARView?
+    private var object = ModelEntity()
+    let objectData: ObjectData
+    
+    init(objectData: ObjectData) {
+        self.objectData = objectData
+    }
     
     func make() -> ARView {
+#if targetEnvironment(simulator)
+        return ARView(frame: .zero)
+#else
         arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
         let arView = arView!
-        arView.session.run(ARWorldTrackingConfiguration())
+        let config = ARWorldTrackingConfiguration()
+        config.planeDetection = .horizontal
+        arView.session.run(config)
+        
+        let anchor = AnchorEntity(plane: .horizontal)
+        object = objectData.generate(moveTheOriginDown: true)
+        anchor.addChild(object)
+        arView.scene.addAnchor(anchor)
+        
         return arView
+#endif
     }
 }
 
