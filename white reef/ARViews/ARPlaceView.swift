@@ -10,6 +10,7 @@ import RealityKit
 import ARKit
 
 struct ARPlaceView: View {
+    @State private var disabledLocal = true
     private let capsule: Capsule
     
     init(objectData: ObjectData) {
@@ -18,11 +19,12 @@ struct ARPlaceView: View {
     
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            ARViewRepresentable(capsule: capsule)
+            ARViewRepresentable(capsule: capsule, disabledLocal: $disabledLocal)
                 .ignoresSafeArea()
             Button("ローカルセーブ") {
                 capsule.localSave()
             }
+            .disabled(disabledLocal)
         }
         .onDisappear {
             capsule.discard()
@@ -32,12 +34,32 @@ struct ARPlaceView: View {
 
 private struct ARViewRepresentable: UIViewRepresentable {
     let capsule: Capsule
+    @Binding var disabledLocal: Bool
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
     
     func makeUIView(context: Context) -> ARView {
-        capsule.make()
+        let arView = capsule.make()
+        arView.session.delegate = context.coordinator
+        return arView
     }
     
     func updateUIView(_ uiView: ARView, context: Context) {}
+    
+    class Coordinator: NSObject, ARSessionDelegate {
+        let parent: ARViewRepresentable
+        
+        init(_ parent: ARViewRepresentable) {
+            self.parent = parent
+        }
+        
+        func session(_ session: ARSession, didUpdate frame: ARFrame) {
+            // ローカルセーブ可能か確認
+            parent.disabledLocal = frame.worldMappingStatus != .mapped && frame.worldMappingStatus != .extending
+        }
+    }
 }
 
 private class Capsule: ARViewCapsule {
