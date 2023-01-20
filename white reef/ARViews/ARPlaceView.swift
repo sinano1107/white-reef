@@ -27,6 +27,9 @@ struct ARPlaceView: View {
 //                command = .localSave
             }
         }
+        .onDisappear {
+            capsule.discard()
+        }
     }
 }
 
@@ -153,6 +156,11 @@ private class ARViewCapsule {
         
         return arView
 #endif
+    }
+    
+    /// arViewを破棄する
+    func discard() {
+        arView = nil
     }
 }
 
