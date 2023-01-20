@@ -10,19 +10,21 @@ import RealityKit
 import ARKit
 
 struct ARPlaceView: View {
-    private let capsule: ARViewCapsule
+    @State private var disabledLocal = true
+    private let capsule: Capsule
     
     init(objectData: ObjectData) {
-        capsule = ARViewCapsule(objectData: objectData)
+        capsule = Capsule(objectData: objectData)
     }
     
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            ARViewRepresentable(capsule: capsule)
+            ARViewRepresentable(capsule: capsule, disabledLocal: $disabledLocal)
                 .ignoresSafeArea()
             Button("ローカルセーブ") {
                 capsule.localSave()
             }
+            .disabled(disabledLocal)
         }
         .onDisappear {
             capsule.discard()
@@ -31,17 +33,36 @@ struct ARPlaceView: View {
 }
 
 private struct ARViewRepresentable: UIViewRepresentable {
-    let capsule: ARViewCapsule
+    let capsule: Capsule
+    @Binding var disabledLocal: Bool
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
     
     func makeUIView(context: Context) -> ARView {
-        capsule.make()
+        let arView = capsule.make()
+        arView.session.delegate = context.coordinator
+        return arView
     }
     
     func updateUIView(_ uiView: ARView, context: Context) {}
+    
+    class Coordinator: NSObject, ARSessionDelegate {
+        let parent: ARViewRepresentable
+        
+        init(_ parent: ARViewRepresentable) {
+            self.parent = parent
+        }
+        
+        func session(_ session: ARSession, didUpdate frame: ARFrame) {
+            // ローカルセーブ可能か確認
+            parent.disabledLocal = frame.worldMappingStatus != .mapped && frame.worldMappingStatus != .extending
+        }
+    }
 }
 
-private class ARViewCapsule {
-    private var arView: ARView?
+private class Capsule: ARViewCapsule {
     private var anchor = AnchorEntity()
     private var object = ModelEntity()
     let objectData: ObjectData
@@ -51,22 +72,9 @@ private class ARViewCapsule {
     }
     
     func make() -> ARView {
+        let arView = super.make()
 #if targetEnvironment(simulator)
-        return ARView(frame: .zero)
 #else
-        arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
-        let arView = arView!
-        
-        // config
-        let config = ARWorldTrackingConfiguration()
-        config.planeDetection = .horizontal
-        config.environmentTexturing = .automatic
-        if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) {
-            config.sceneReconstruction = .mesh
-            arView.environment.sceneUnderstanding.options.insert(.occlusion)
-        }
-        arView.session.run(config)
-        
         // objectを追加
         anchor = AnchorEntity(plane: .horizontal)
         object = objectData.generate(moveTheOriginDown: true)
@@ -80,13 +88,14 @@ private class ARViewCapsule {
         // gestureRecognizerを追加
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(sender:)))
         arView.addGestureRecognizer(tapGesture)
-        
-        return arView
 #endif
+        return arView
     }
     
     /// タップされた時objectを移動する
     @objc func handleTap(sender: UITapGestureRecognizer) {
+#if targetEnvironment(simulator)
+#else
         guard let arView = arView else { return }
         
         // raycast
@@ -114,6 +123,7 @@ private class ARViewCapsule {
         // アンカーにobjectを追加して、シーンに追加
         anchor.addChild(object)
         arView.scene.addAnchor(anchor)
+#endif
     }
     
     /// ARkitの標準機能による永続化
@@ -137,11 +147,6 @@ private class ARViewCapsule {
                 fatalError("[エラー] mapの保存に失敗: \(error)")
             }
         }
-    }
-    
-    /// arViewを破棄する
-    func discard() {
-        arView = nil
     }
 }
 
