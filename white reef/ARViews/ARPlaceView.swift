@@ -24,7 +24,7 @@ struct ARPlaceView: View {
 //                    command = .handleTapGesture(location: location)
                 }
             Button("ローカルセーブ") {
-//                command = .localSave
+                capsule.localSave()
             }
         }
         .onDisappear {
@@ -204,6 +204,29 @@ private class ARViewCapsule {
         // アンカーにobjectを追加して、シーンに追加
         anchor.addChild(object)
         arView.scene.addAnchor(anchor)
+    }
+    
+    /// ARkitの標準機能による永続化
+    func localSave() {
+        arView?.session.getCurrentWorldMap { worldMap, error in
+            guard let worldMap = worldMap
+            else { fatalError("[エラー] worldMapがnil: \(String(describing: error))") }
+            
+            // アンカーをセーブアンカーのみにする
+            worldMap.anchors.removeAll()
+            worldMap.anchors.append(SaveAnchor(
+                objectData: self.objectData,
+                scale: self.object.scale,
+                transform: self.object.transformMatrix(relativeTo: nil)))
+            
+            // アーカイブとセーブを実行
+            do {
+                let archivedMap = try NSKeyedArchiver.archivedData(withRootObject: worldMap, requiringSecureCoding: true)
+                UserDefaults().set(archivedMap, forKey: "saved")
+            } catch {
+                fatalError("[エラー] mapの保存に失敗: \(error)")
+            }
+        }
     }
     
     /// arViewを破棄する
