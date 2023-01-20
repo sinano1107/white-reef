@@ -9,7 +9,7 @@ import SwiftUI
 import RealityKit
 import MapKit
 
-var arView = ARView(frame: .zero)
+//var arView = ARView(frame: .zero)
 
 struct ContentView : View {
     private let objectData = ObjectData.sample
@@ -22,7 +22,7 @@ struct ContentView : View {
                 .ignoresSafeArea()
                 .navigationTitle("White Reef")
                 .navigationDestination(isPresented: $arIsPresented) {
-                    PersistanceView(objectData: objectData)
+                    ARPlaceView(objectData: objectData)
                 }
                 .toolbar {
                     ToolbarItem(placement: .bottomBar) {

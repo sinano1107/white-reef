@@ -43,7 +43,7 @@ class ObjectData: NSObject, NSSecureCoding {
             let material = SimpleMaterial(
                 color: color,
                 roughness: MaterialScalarParameter(floatLiteral: roughness),
-                isMetallic: false
+                isMetallic: isMetallic
             )
             return material
         }

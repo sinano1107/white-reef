@@ -16,7 +16,7 @@ struct ObjectSheet: View {
     
     var body: some View {
         ZStack {
-            OrbitView($model, radius: 1.5)
+            OrbitView(entity: model, firstRadius: 1.5)
                 .ignoresSafeArea()
             VStack {
                 HStack {

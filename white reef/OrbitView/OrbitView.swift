@@ -8,40 +8,48 @@
 import SwiftUI
 import RealityKit
 
-struct OrbitView: View {
-    @Binding var model: ModelEntity
+struct OrbitView: UIViewRepresentable {
+    let entity: Entity
+    let firstRadius: Float
     
-    private let camera = PerspectiveCamera()
-    private let dragspeed: Float = 0.01
-    
-    @State private var radius: Float
-    @State private var magnify_start_radius: Float
-    @State private var rotationAngle: Float = 0
-    @State private var inclinationAngle: Float = 0
-    @State private var dragstart_rotation: Float = 0
-    @State private var dragstart_inclination: Float = 0
-    
-    init(_ model: Binding<ModelEntity>, radius: Float = 6) {
-        self._model = model
-        self.radius = radius
-        self.magnify_start_radius = radius
+    func makeCoordinator() -> Coordinator {
+        Coordinator(firstRadius: firstRadius)
     }
     
-    private struct ARViewContainer: UIViewRepresentable {
-        let entity: Entity
-        let camera: PerspectiveCamera
-        let firstRadius: Float
+    func makeUIView(context: Context) -> ARView {
+        context.coordinator.addGestures()
+        return context.coordinator.arView
+    }
+    
+    func updateUIView(_ uiView: ARView, context: Context) {
+        // entityが変化した時に切り替える
+        let anchor = uiView.scene.anchors.first!
+        anchor.addChild(entity)
+        if anchor.children.count == 3 {
+            anchor.children.remove(at: 1)
+        }
+    }
+    
+    class Coordinator: NSObject {
+#if targetEnvironment(simulator)
+        let arView = ARView(frame: .zero)
+#else
+        let arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
+#endif
+        let camera = PerspectiveCamera()
         
-        func makeUIView(context: Context) -> ARView {
-            // arViewの初期化
-            #if targetEnvironment(simulator)
-            arView = ARView(frame: .zero)
-            #else
-            arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
-            #endif
-            // 別の画面でARを起動してから開くと歪みが出てしまうためモーションブラーを切る
-            arView.renderOptions.insert(.disableMotionBlur)
-            // 背景色を設定
+        let dragspeed: Float = 0.01
+        private var radius: Float
+        private var magnify_start_radius: Float
+        private var rotationAngle: Float = 0
+        private var inclinationAngle: Float = 0
+        private var dragstart_rotation: Float = 0
+        private var dragstart_inclination: Float = 0
+        
+        init(firstRadius: Float) {
+            self.radius = firstRadius
+            self.magnify_start_radius = firstRadius
+            // 背景色を透明に設定
             arView.environment.background = .color(.clear)
             // アンカーを生成
             let anchor = AnchorEntity(world: .zero)
@@ -51,58 +59,60 @@ struct OrbitView: View {
             anchor.addChild(camera)
             // シーンにアンカーを追加
             arView.scene.addAnchor(anchor)
-            return arView
         }
         
-        func updateUIView(_ uiView: ARView, context: Context) {
-            let anchor = uiView.scene.anchors.first!
-            anchor.addChild(entity)
-            if anchor.children.count == 3 {
-                anchor.children.remove(at: 1)
-            }
+        func addGestures() {
+            let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(sender:)))
+            let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(sender:)))
+            arView.addGestureRecognizer(panGesture)
+            arView.addGestureRecognizer(pinchGesture)
         }
-    }
-    
-    @MainActor private func updateCamera() {
-        let translationTransform = Transform(
-            scale: .one,
-            rotation: simd_quatf(),
-            translation: SIMD3<Float>(0, 0, radius))
-        let combinedRotationTransform: Transform = .init(
-            pitch: inclinationAngle,
-            yaw: rotationAngle,
-            roll: 0)
-        let computed_transform = matrix_identity_float4x4 * combinedRotationTransform.matrix * translationTransform.matrix
-        camera.transform = Transform(matrix: computed_transform)
-    }
-    
-    var body: some View {
-        ARViewContainer(entity: model, camera: camera, firstRadius: radius)
-            // ドラッグ
-            .gesture(DragGesture().onChanged({ value in
-                let deltaX = Float(value.location.x - value.startLocation.x)
-                let deltaY = Float(value.location.y - value.startLocation.y)
-                rotationAngle = dragstart_rotation - deltaX * dragspeed
-                inclinationAngle = dragstart_inclination - deltaY * dragspeed
-                // 傾きが90度以下、-90度以上になるようにクランプ
-                if inclinationAngle > Float.pi / 2 {
-                    inclinationAngle = Float.pi / 2
-                } else if inclinationAngle < -Float.pi / 2 {
-                    inclinationAngle = -Float.pi / 2
-                }
-                
-                updateCamera()
-            }).onEnded({ _ in
+        
+        /// パンジェスチャー
+        @MainActor @objc func handlePan(sender: UIPanGestureRecognizer) {
+            // 終了時
+            if sender.state == .ended {
                 dragstart_rotation = rotationAngle
                 dragstart_inclination = inclinationAngle
-            }))
-            // 拡大・縮小
-            .gesture(MagnificationGesture().onChanged({ value in
-                radius = magnify_start_radius / Float(value)
-                updateCamera()
-            }).onEnded({ _ in
+                return
+            }
+            /// パンのスタートからの移動距離
+            let res = sender.translation(in: arView)
+            rotationAngle = dragstart_rotation - Float(res.x) * dragspeed
+            inclinationAngle = dragstart_inclination - Float(res.y) * dragspeed
+            // 傾きが90度以下、-90度以上になるようにクランプ
+            if inclinationAngle > Float.pi / 2 {
+                inclinationAngle = Float.pi / 2
+            } else if inclinationAngle < -Float.pi / 2 {
+                inclinationAngle = -Float.pi / 2
+            }
+            // アップデート
+            updateCamera()
+        }
+        
+        /// ピンチジェスチャー
+        @MainActor @objc func handlePinch(sender: UIPinchGestureRecognizer) {
+            if sender.state == .ended {
                 magnify_start_radius = radius
-            }))
+                return
+            }
+            radius = magnify_start_radius / Float(sender.scale)
+            updateCamera()
+        }
+        
+        /// カメラを更新
+        @MainActor func updateCamera() {
+            let translationTransform = Transform(
+                scale: .one,
+                rotation: simd_quatf(),
+                translation: SIMD3<Float>(0, 0, radius))
+            let combinedRotationTransform: Transform = .init(
+                pitch: inclinationAngle,
+                yaw: rotationAngle,
+                roll: 0)
+            let computed_transform = matrix_identity_float4x4 * combinedRotationTransform.matrix * translationTransform.matrix
+            camera.transform = Transform(matrix: computed_transform)
+        }
     }
 }
 
@@ -110,6 +120,6 @@ struct OrbitView_Previews: PreviewProvider {
     @State static var model = ModelEntity(mesh: .generateBox(size: 1), materials: [SimpleMaterial()])
     
     static var previews: some View {
-        OrbitView($model)
+        OrbitView(entity: model, firstRadius: 6)
     }
 }
