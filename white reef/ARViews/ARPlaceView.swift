@@ -145,14 +145,26 @@ private class ARViewCapsule {
 #else
         arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
         let arView = arView!
+        
+        // config
         let config = ARWorldTrackingConfiguration()
         config.planeDetection = .horizontal
+        config.environmentTexturing = .automatic
+        if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) {
+            config.sceneReconstruction = .mesh
+            arView.environment.sceneUnderstanding.options.insert(.occlusion)
+        }
         arView.session.run(config)
         
+        // objectを追加
         let anchor = AnchorEntity(plane: .horizontal)
         object = objectData.generate(moveTheOriginDown: true)
         anchor.addChild(object)
         arView.scene.addAnchor(anchor)
+        
+        // objectをinstallGestureの対象に
+        object.generateCollisionShapes(recursive: false)
+        arView.installGestures(for: object)
         
         return arView
 #endif
