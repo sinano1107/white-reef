@@ -8,17 +8,14 @@
 import RealityKit
 import ARKit
 
-class ARViewCapsule: NSObject, ARSessionDelegate {
+class ARViewCapsule {
     private (set) var arView: ARView?
     
     /// arVIewを設定し代入する
     func make(initialWorldMap: ARWorldMap? = nil) -> ARView {
 #if targetEnvironment(simulator)
-        
         return ARView(frame: .zero)
-        
 #else
-        
         arView = ARView(frame: .zero, cameraMode: .ar, automaticallyConfigureSession: false)
         let arView = arView!
         
@@ -34,12 +31,8 @@ class ARViewCapsule: NSObject, ARSessionDelegate {
             arView.environment.sceneUnderstanding.options.insert(.occlusion)
         }
         
-        // delegateを自身に設定
-        arView.session.delegate = self
-        
         arView.session.run(config)
         return arView
-        
 #endif
     }
     

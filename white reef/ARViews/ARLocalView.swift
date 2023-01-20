@@ -24,11 +24,29 @@ private struct ARViewRepresentable: UIViewRepresentable {
     @AppStorage("saved") private var archivedMap = Data()
     let capsule: Capsule
     
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
     func makeUIView(context: Context) -> ARView {
-        capsule.make(archivedMap: archivedMap)
+        let arView = capsule.make(archivedMap: archivedMap)
+        arView.session.delegate = context.coordinator
+        return arView
     }
     
     func updateUIView(_ uiView: ARView, context: Context) {}
+    
+    class Coordinator: NSObject, ARSessionDelegate {
+        let parent: ARViewRepresentable
+        
+        init(_ parent: ARViewRepresentable) {
+            self.parent = parent
+        }
+        
+        func session(_ session: ARSession, didUpdate frame: ARFrame) {
+            parent.capsule.reconstruction(trackingState: frame.camera.trackingState)
+        }
+    }
 }
 
 private class Capsule: ARViewCapsule {
@@ -43,12 +61,17 @@ private class Capsule: ARViewCapsule {
         return super.make(initialWorldMap: initialWorldMap)
     }
     
-    func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        if localizing && frame.camera.trackingState == .normal {
+    /// ローカライズに成功した時に復元したオブジェクトを設置する
+    func reconstruction(trackingState: ARCamera.TrackingState) {
+        if localizing && trackingState == .normal {
+            // フラグを折る
             localizing = false
             guard let saveAnchor = saveAnchor else { return }
             let anchorEntity = saveAnchor.generateAnchorEntity()
-            arView?.scene.addAnchor(anchorEntity)
+            // 1秒後にanchorEntityを追加
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.arView?.scene.addAnchor(anchorEntity)
+            }
         }
     }
 }
