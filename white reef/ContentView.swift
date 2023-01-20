@@ -18,6 +18,11 @@ struct ContentView : View {
     
     var body: some View {
         NavigationStack {
+            NavigationLink {
+                ARLocalView()
+            } label: {
+                Text("ARLocalView")
+            }
             MapContainer()
                 .ignoresSafeArea()
                 .navigationTitle("White Reef")
