@@ -74,6 +74,11 @@ private class Capsule: ARViewCapsule {
             }
         }
     }
+    
+    override func discard() {
+        super.discard()
+        localizing = true
+    }
 }
 
 struct ARLocalView_Previews: PreviewProvider {
