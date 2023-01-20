@@ -132,6 +132,7 @@ private struct ARViewRepresentable: UIViewRepresentable {
 
 private class ARViewCapsule {
     private var arView: ARView?
+    private var anchor = AnchorEntity()
     private var object = ModelEntity()
     let objectData: ObjectData
     
@@ -157,7 +158,7 @@ private class ARViewCapsule {
         arView.session.run(config)
         
         // objectを追加
-        let anchor = AnchorEntity(plane: .horizontal)
+        anchor = AnchorEntity(plane: .horizontal)
         object = objectData.generate(moveTheOriginDown: true)
         anchor.addChild(object)
         arView.scene.addAnchor(anchor)
@@ -166,8 +167,43 @@ private class ARViewCapsule {
         object.generateCollisionShapes(recursive: false)
         arView.installGestures(for: object)
         
+        // gestureRecognizerを追加
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(sender:)))
+        arView.addGestureRecognizer(tapGesture)
+        
         return arView
 #endif
+    }
+    
+    /// タップされた時objectを移動する
+    @objc func handleTap(sender: UITapGestureRecognizer) {
+        guard let arView = arView else { return }
+        
+        // raycast
+        let location = sender.location(in: arView)
+        guard let result = arView.raycast(
+            from: location,
+            allowing: .estimatedPlane,
+            alignment: .horizontal
+        ).first
+        else { return }
+        
+        // ARAnchorを追加
+        let arAnchor = ARAnchor(transform: result.worldTransform)
+        arView.session.add(anchor: arAnchor)
+        
+        // 既存のアンカーを削除
+        arView.scene.removeAnchor(anchor)
+        
+        // 新しくアンカーを生成
+        anchor = AnchorEntity(anchor: arAnchor)
+        
+        // objectのポジションのみリセット
+        object.setPosition([0, 0, 0], relativeTo: anchor)
+        
+        // アンカーにobjectを追加して、シーンに追加
+        anchor.addChild(object)
+        arView.scene.addAnchor(anchor)
     }
     
     /// arViewを破棄する
