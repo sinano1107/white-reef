@@ -13,6 +13,7 @@ import MapKit
 
 struct ContentView : View {
     private let objectData = ObjectData.sample
+    @State private var newCoral: LocalCoral?
     @State private var sheetIsPresented = false
     @State private var arIsPresented = false
     
@@ -23,11 +24,13 @@ struct ContentView : View {
             } label: {
                 Text("ARLocalView")
             }
-            MapContainer()
+            MapContainer(newCoral: $newCoral)
                 .ignoresSafeArea()
                 .navigationTitle("White Reef")
                 .navigationDestination(isPresented: $arIsPresented) {
-                    ARPlaceView(objectData: objectData)
+                    ARPlaceView(objectData: objectData) { newCoral in
+                        self.newCoral = newCoral
+                    }
                 }
                 .toolbar {
                     ToolbarItem(placement: .bottomBar) {
@@ -47,6 +50,8 @@ struct ContentView : View {
 }
 
 struct MapContainer: UIViewRepresentable {
+    @Binding var newCoral: LocalCoral?
+    let defaults = UserDefaults()
     let manager = CLLocationManager()
     let view = MKMapView()
     
@@ -66,14 +71,40 @@ struct MapContainer: UIViewRepresentable {
             MKCoordinateRegion(
                 center: center,
                 span: MKCoordinateSpan(
-                    latitudeDelta: 0.0025,
-                    longitudeDelta: 0.0025)),
+                    latitudeDelta: 0.0001,
+                    longitudeDelta: 0.0001)),
             animated: true)
+        
+        /// ローカルコーラルの個数
+        let localCoralCount = defaults.integer(forKey: "localCoralCount")
+        
+        // ローカルコーラルの復元
+        for index in 0 ..< localCoralCount {
+            let key = "localCorals/\(index)"
+            guard let data = defaults.data(forKey: key) else { fatalError("データがない") }
+            print(data)
+            do {
+                guard let coral = try NSKeyedUnarchiver.unarchivedObject(ofClass: LocalCoral.self, from: data) else { fatalError("coralがnil") }
+                /// アノテーション
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = coral.coordinator
+                view.addAnnotation(annotation)
+                print("復元しました: \(coral.latitude), \(coral.longitude)")
+            } catch {
+                print("localCoralの復元エラー: key=\(key), error=\(error)")
+            }
+        }
         
         return view
     }
     
-    func updateUIView(_ uiView: UIViewType, context: Context) {}
+    func updateUIView(_ uiView: UIViewType, context: Context) {
+        guard let coral = newCoral else { return }
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coral.coordinator
+        view.addAnnotation(annotation)
+        print("追加しました: \(coral.latitude), \(coral.longitude)")
+    }
 }
 
 struct ContentView_Previews : PreviewProvider {

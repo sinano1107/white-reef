@@ -10,11 +10,14 @@ import RealityKit
 import ARKit
 
 struct ARPlaceView: View {
+    @AppStorage("localCoralCount") private var localCoralCount = 0
     @State private var disabledLocal = true
     private let capsule: Capsule
+    let onSaved: (_ newCoral: LocalCoral) -> Void
     
-    init(objectData: ObjectData) {
+    init(objectData: ObjectData, onSaved: @escaping (_ newCoral: LocalCoral) -> Void) {
         capsule = Capsule(objectData: objectData)
+        self.onSaved = onSaved
     }
     
     var body: some View {
@@ -22,7 +25,10 @@ struct ARPlaceView: View {
             ARViewRepresentable(capsule: capsule, disabledLocal: $disabledLocal)
                 .ignoresSafeArea()
             Button("ローカルセーブ") {
-                capsule.localSave()
+                capsule.localSave(index: localCoralCount) { newCoral in
+                    onSaved(newCoral)
+                    localCoralCount += 1
+                }
             }
             .disabled(disabledLocal)
         }
@@ -127,7 +133,7 @@ private class Capsule: ARViewCapsule {
     }
     
     /// ARkitの標準機能による永続化
-    func localSave() {
+    func localSave(index: Int, onSaved: @escaping (_ newCoral: LocalCoral) -> Void) {
         arView?.session.getCurrentWorldMap { worldMap, error in
             guard let worldMap = worldMap
             else { fatalError("[エラー] worldMapがnil: \(String(describing: error))") }
@@ -139,10 +145,21 @@ private class Capsule: ARViewCapsule {
                 scale: self.object.scale,
                 transform: self.object.transformMatrix(relativeTo: nil)))
             
-            // アーカイブとセーブを実行
             do {
-                let archivedMap = try NSKeyedArchiver.archivedData(withRootObject: worldMap, requiringSecureCoding: true)
-                UserDefaults().set(archivedMap, forKey: "saved")
+                // 必要な情報
+                let defaults = UserDefaults()
+                guard let coordinate = CLLocationManager().location?.coordinate else { fatalError("位置情報が不明") }
+                
+                // コーラルを生成してアーカイブ
+                let newCoral = LocalCoral(coordinator: coordinate, armap: worldMap)
+                let archivedCoral = try NSKeyedArchiver.archivedData(withRootObject: newCoral, requiringSecureCoding: true)
+                
+                // 保存
+                let key = "localCorals/\(index)"
+                defaults.set(archivedCoral, forKey: key)
+                
+                // onSavedを実行
+                onSaved(newCoral)
             } catch {
                 fatalError("[エラー] mapの保存に失敗: \(error)")
             }
@@ -152,6 +169,6 @@ private class Capsule: ARViewCapsule {
 
 struct ARPlaceView_Previews: PreviewProvider {
     static var previews: some View {
-        ARPlaceView(objectData: ObjectData.sample)
+        ARPlaceView(objectData: ObjectData.sample) { _ in }
     }
 }
