@@ -12,38 +12,37 @@ import MapKit
 struct ContentView : View {
     private let objectData = ObjectData.sample
     @State private var newCoral: LocalCoral?
-    @State private var selectCoral: Int?
+    @State private var selectCoral = 0
     @State private var sheetIsPresented = false
     @State private var arIsPresented = false
+    @State private var localIsPresented = false
     
     var body: some View {
-        let localARIsPresented = Binding(
-            get: { selectCoral != nil },
-            set: { _ in selectCoral = nil })
-        
-        return NavigationStack {
-            
-            MapContainer(newCoral: $newCoral, selectCoral: $selectCoral)
-                .ignoresSafeArea()
-                .navigationTitle("White Reef")
-                .navigationDestination(isPresented: $arIsPresented) {
-                    ARPlaceView(objectData: objectData) { newCoral in
-                        self.newCoral = newCoral
+        NavigationStack {
+            MapContainer(newCoral: $newCoral) { index in
+                selectCoral = index
+                localIsPresented = true
+            }
+            .ignoresSafeArea()
+            .navigationTitle("White Reef")
+            .navigationDestination(isPresented: $arIsPresented) {
+                ARPlaceView(objectData: objectData) { newCoral in
+                    self.newCoral = newCoral
+                }
+            }
+            .navigationDestination(isPresented: $localIsPresented) {
+                ARLocalView(selectCoral: $selectCoral)
+            }
+            .toolbar {
+                ToolbarItem(placement: .bottomBar) {
+                    Button(action: {
+                        sheetIsPresented.toggle()
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.largeTitle)
                     }
                 }
-                .navigationDestination(isPresented: localARIsPresented) {
-                    ARLocalView(selectCoral: $selectCoral)
-                }
-                .toolbar {
-                    ToolbarItem(placement: .bottomBar) {
-                        Button(action: {
-                            sheetIsPresented.toggle()
-                        }) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.largeTitle)
-                        }
-                    }
-                }
+            }
         }
         .sheet(isPresented: $sheetIsPresented) {
             ObjectSheet(arIsPresented: $arIsPresented, objectData: objectData)
@@ -53,7 +52,7 @@ struct ContentView : View {
 
 struct MapContainer: UIViewRepresentable {
     @Binding var newCoral: LocalCoral?
-    @Binding var selectCoral: Int?
+    let handleSelect: (_ index: Int) -> Void
     let defaults = UserDefaults()
     let manager = CLLocationManager()
     let view = MKMapView()
@@ -132,7 +131,7 @@ struct MapContainer: UIViewRepresentable {
         
         func mapView(_ mapView: MKMapView, didSelect annotation: MKAnnotation) {
             guard let coralAnnotation = annotation as? CoralAnnotation else { return }
-            parent.selectCoral = coralAnnotation.index
+            parent.handleSelect(coralAnnotation.index)
         }
     }
 }

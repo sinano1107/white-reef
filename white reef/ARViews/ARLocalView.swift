@@ -11,7 +11,7 @@ import ARKit
 
 struct ARLocalView: View {
     private let capsule = Capsule()
-    @Binding var selectCoral: Int?
+    @Binding var selectCoral: Int
     
     var body: some View {
         ARViewRepresentable(capsule: capsule, selectCoral: $selectCoral)
@@ -24,14 +24,14 @@ struct ARLocalView: View {
 
 private struct ARViewRepresentable: UIViewRepresentable {
     let capsule: Capsule
-    @Binding var selectCoral: Int?
+    @Binding var selectCoral: Int
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
     
     func makeUIView(context: Context) -> ARView {
-        let data = UserDefaults().data(forKey: "localCorals/\(selectCoral!)")!
+        let data = UserDefaults().data(forKey: "localCorals/\(selectCoral)")!
         let arView = capsule.make(data: data)
         arView.session.delegate = context.coordinator
         return arView
