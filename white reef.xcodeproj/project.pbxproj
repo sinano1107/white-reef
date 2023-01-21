@@ -21,6 +21,7 @@
 		9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */; };
 		9FCD566E297A5F620003E4AC /* ARLocalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FCD566D297A5F620003E4AC /* ARLocalView.swift */; };
 		9FD49020297A60FD00EFA001 /* ARVIewCapsule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD4901F297A60FD00EFA001 /* ARVIewCapsule.swift */; };
+		9FD49022297A846900EFA001 /* LocalCoral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD49021297A846900EFA001 /* LocalCoral.swift */; };
 		9FD9899D296FD6B9008008E6 /* GenerateTetrahedron.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD9899C296FD6B9008008E6 /* GenerateTetrahedron.swift */; };
 		9FD989A229704206008008E6 /* GenerateRandomObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989A129704206008008E6 /* GenerateRandomObject.swift */; };
 		9FD989A429704304008008E6 /* Growth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD989A329704304008008E6 /* Growth.swift */; };
@@ -51,6 +52,7 @@
 		9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialView.swift; sourceTree = "<group>"; };
 		9FCD566D297A5F620003E4AC /* ARLocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARLocalView.swift; sourceTree = "<group>"; };
 		9FD4901F297A60FD00EFA001 /* ARVIewCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARVIewCapsule.swift; sourceTree = "<group>"; };
+		9FD49021297A846900EFA001 /* LocalCoral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalCoral.swift; sourceTree = "<group>"; };
 		9FD9899C296FD6B9008008E6 /* GenerateTetrahedron.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateTetrahedron.swift; sourceTree = "<group>"; };
 		9FD989A129704206008008E6 /* GenerateRandomObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateRandomObject.swift; sourceTree = "<group>"; };
 		9FD989A329704304008008E6 /* Growth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Growth.swift; sourceTree = "<group>"; };
@@ -154,6 +156,7 @@
 				9F56426129737E3D00695A6D /* ObjectData.swift */,
 				9F56426329751EF300695A6D /* SaveAnchor.swift */,
 				9FD4901F297A60FD00EFA001 /* ARVIewCapsule.swift */,
+				9FD49021297A846900EFA001 /* LocalCoral.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -338,6 +341,7 @@
 				9FD9899D296FD6B9008008E6 /* GenerateTetrahedron.swift in Sources */,
 				9F43CEF6295D982A00ABB3B0 /* ContentView.swift in Sources */,
 				9FD989AB297044AB008008E6 /* symmetric_indefinite_general.swift in Sources */,
+				9FD49022297A846900EFA001 /* LocalCoral.swift in Sources */,
 				9FD989AD297044AB008008E6 /* isPositiveDefinite.swift in Sources */,
 				9F56426229737E3D00695A6D /* ObjectData.swift in Sources */,
 				9FD989AC297044AB008008E6 /* leastSquares_nonsquare.swift in Sources */,
