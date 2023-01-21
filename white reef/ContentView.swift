@@ -9,28 +9,30 @@ import SwiftUI
 import RealityKit
 import MapKit
 
-//var arView = ARView(frame: .zero)
-
 struct ContentView : View {
     private let objectData = ObjectData.sample
     @State private var newCoral: LocalCoral?
+    @State private var selectCoral: Int?
     @State private var sheetIsPresented = false
     @State private var arIsPresented = false
     
     var body: some View {
-        NavigationStack {
-            NavigationLink {
-                ARLocalView()
-            } label: {
-                Text("ARLocalView")
-            }
-            MapContainer(newCoral: $newCoral)
+        let localARIsPresented = Binding(
+            get: { selectCoral != nil },
+            set: { _ in selectCoral = nil })
+        
+        return NavigationStack {
+            
+            MapContainer(newCoral: $newCoral, selectCoral: $selectCoral)
                 .ignoresSafeArea()
                 .navigationTitle("White Reef")
                 .navigationDestination(isPresented: $arIsPresented) {
                     ARPlaceView(objectData: objectData) { newCoral in
                         self.newCoral = newCoral
                     }
+                }
+                .navigationDestination(isPresented: localARIsPresented) {
+                    ARLocalView(selectCoral: $selectCoral)
                 }
                 .toolbar {
                     ToolbarItem(placement: .bottomBar) {
@@ -51,11 +53,19 @@ struct ContentView : View {
 
 struct MapContainer: UIViewRepresentable {
     @Binding var newCoral: LocalCoral?
+    @Binding var selectCoral: Int?
     let defaults = UserDefaults()
     let manager = CLLocationManager()
     let view = MKMapView()
     
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
     func makeUIView(context: Context) -> some MKMapView {
+        // delegateを設定
+        view.delegate = context.coordinator
+        
         // ユーザーの現在位置を表示
         view.showsUserLocation = true
         
@@ -86,7 +96,7 @@ struct MapContainer: UIViewRepresentable {
             do {
                 guard let coral = try NSKeyedUnarchiver.unarchivedObject(ofClass: LocalCoral.self, from: data) else { fatalError("coralがnil") }
                 /// アノテーション
-                let annotation = MKPointAnnotation()
+                let annotation = CoralAnnotation(index: index)
                 annotation.coordinate = coral.coordinator
                 view.addAnnotation(annotation)
                 print("復元しました: \(coral.latitude), \(coral.longitude)")
@@ -99,11 +109,31 @@ struct MapContainer: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UIViewType, context: Context) {
+        let coordinator = context.coordinator
         guard let coral = newCoral else { return }
-        let annotation = MKPointAnnotation()
+        if coordinator.prevSavedIndex == coral.index {
+            print("このコーラルはマップに追加済みなのでスキップします");
+            return
+        }
+        let annotation = CoralAnnotation(index: coral.index)
         annotation.coordinate = coral.coordinator
         view.addAnnotation(annotation)
+        coordinator.prevSavedIndex = coral.index
         print("追加しました: \(coral.latitude), \(coral.longitude)")
+    }
+    
+    class Coordinator: NSObject, MKMapViewDelegate {
+        let parent: MapContainer
+        var prevSavedIndex: Int?
+        
+        init(_ parent: MapContainer) {
+            self.parent = parent
+        }
+        
+        func mapView(_ mapView: MKMapView, didSelect annotation: MKAnnotation) {
+            guard let coralAnnotation = annotation as? CoralAnnotation else { return }
+            parent.selectCoral = coralAnnotation.index
+        }
     }
 }
 

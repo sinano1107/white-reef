@@ -11,9 +11,11 @@ import ARKit
 
 struct ARLocalView: View {
     private let capsule = Capsule()
+    @Binding var selectCoral: Int?
     
     var body: some View {
-        ARViewRepresentable(capsule: capsule)
+        ARViewRepresentable(capsule: capsule, selectCoral: $selectCoral)
+            .ignoresSafeArea()
             .onDisappear {
                 capsule.discard()
             }
@@ -21,15 +23,16 @@ struct ARLocalView: View {
 }
 
 private struct ARViewRepresentable: UIViewRepresentable {
-    @AppStorage("saved") private var archivedMap = Data()
     let capsule: Capsule
+    @Binding var selectCoral: Int?
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
     
     func makeUIView(context: Context) -> ARView {
-        let arView = capsule.make(archivedMap: archivedMap)
+        let data = UserDefaults().data(forKey: "localCorals/\(selectCoral!)")!
+        let arView = capsule.make(data: data)
         arView.session.delegate = context.coordinator
         return arView
     }
@@ -53,9 +56,11 @@ private class Capsule: ARViewCapsule {
     private var localizing = true
     private var saveAnchor: SaveAnchor?
     
-    func make(archivedMap: Data) -> ARView {
-        let initialWorldMap = try! NSKeyedUnarchiver.unarchivedObject(ofClass: ARWorldMap.self, from: archivedMap)
-        if let first = initialWorldMap?.anchors.first {
+    func make(data: Data) -> ARView {
+        let localCoral = try! NSKeyedUnarchiver.unarchivedObject(
+            ofClass: LocalCoral.self, from: data)!
+        let initialWorldMap = localCoral.armap
+        if let first = initialWorldMap.anchors.first {
             saveAnchor = SaveAnchor(anchor: first)
         }
         return super.make(initialWorldMap: initialWorldMap)
@@ -83,6 +88,6 @@ private class Capsule: ARViewCapsule {
 
 struct ARLocalView_Previews: PreviewProvider {
     static var previews: some View {
-        ARLocalView()
+        ARLocalView(selectCoral: .constant(0))
     }
 }
