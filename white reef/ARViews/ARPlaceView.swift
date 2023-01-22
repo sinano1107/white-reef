@@ -25,7 +25,7 @@ struct ARPlaceView: View {
             ARViewRepresentable(
                 capsule: capsule,
                 worldMapingStatus: $worldMappingStatus)
-                .ignoresSafeArea()
+            .ignoresSafeArea()
             Button("ローカルセーブ") {
                 capsule.localSave(index: localCoralCount) { newCoral in
                     onSaved(newCoral)
@@ -146,7 +146,6 @@ private class Capsule: ARViewCapsule {
             worldMap.anchors.removeAll()
             worldMap.anchors.append(SaveAnchor(
                 objectData: self.objectData,
-                scale: self.object.scale,
                 transform: self.object.transformMatrix(relativeTo: nil)))
             
             do {
