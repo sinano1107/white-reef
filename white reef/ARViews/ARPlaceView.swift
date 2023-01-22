@@ -11,7 +11,7 @@ import ARKit
 
 struct ARPlaceView: View {
     @AppStorage("localCoralCount") private var localCoralCount = 0
-    @State private var disabledLocal = true
+    @State private var worldMappingStatus: ARFrame.WorldMappingStatus = .notAvailable
     private let capsule: Capsule
     let onSaved: (_ newCoral: LocalCoral) -> Void
     
@@ -22,7 +22,9 @@ struct ARPlaceView: View {
     
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            ARViewRepresentable(capsule: capsule, disabledLocal: $disabledLocal)
+            ARViewRepresentable(
+                capsule: capsule,
+                worldMapingStatus: $worldMappingStatus)
                 .ignoresSafeArea()
             Button("ローカルセーブ") {
                 capsule.localSave(index: localCoralCount) { newCoral in
@@ -30,7 +32,9 @@ struct ARPlaceView: View {
                     localCoralCount += 1
                 }
             }
-            .disabled(disabledLocal)
+            .disabled(
+                worldMappingStatus != .mapped
+                && worldMappingStatus != .extending)
         }
         .onDisappear {
             capsule.discard()
@@ -40,7 +44,7 @@ struct ARPlaceView: View {
 
 private struct ARViewRepresentable: UIViewRepresentable {
     let capsule: Capsule
-    @Binding var disabledLocal: Bool
+    @Binding var worldMapingStatus: ARFrame.WorldMappingStatus
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -62,8 +66,8 @@ private struct ARViewRepresentable: UIViewRepresentable {
         }
         
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
-            // ローカルセーブ可能か確認
-            parent.disabledLocal = frame.worldMappingStatus != .mapped && frame.worldMappingStatus != .extending
+            // ワールドマッピングステータスを更新
+            parent.worldMapingStatus = frame.worldMappingStatus
         }
     }
 }
