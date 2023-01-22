@@ -44,3 +44,29 @@ extension ARCamera.TrackingState: CustomStringConvertible {
         }
     }
 }
+
+extension CGImagePropertyOrientation {
+    /// iOSデバイスのカメラのネイティブセンサーの向きを考慮した、好ましい画像の表示方向です。
+    init(cameraOrientation: UIDeviceOrientation) {
+        switch cameraOrientation {
+        case .portrait:
+            self = .right
+        case .portraitUpsideDown:
+            self = .left
+        case .landscapeLeft:
+            self = .up
+        case .landscapeRight:
+            self = .down
+        default:
+            self = .right
+        }
+    }
+}
+
+func unarchiveCoral(index: Int) -> LocalCoral {
+    let key = "localCorals/\(index)"
+    guard let data = UserDefaults().data(forKey: key) else { fatalError("データがない") }
+    guard let coral = try! NSKeyedUnarchiver.unarchivedObject(ofClass: LocalCoral.self, from: data)
+    else { fatalError("coralがnil") }
+    return coral
+}

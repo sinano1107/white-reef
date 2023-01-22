@@ -11,30 +11,54 @@ import ARKit
 
 struct ARLocalView: View {
     private let capsule = Capsule()
-    @Binding var selectCoral: Int
+    @Binding var coral: LocalCoral?
     
     var body: some View {
-        ARViewRepresentable(capsule: capsule, selectCoral: $selectCoral)
-            .ignoresSafeArea()
-            .onDisappear {
-                capsule.discard()
+        GeometryReader { geometry in
+            ZStack(alignment: .topLeading) {
+                ARViewRepresentable(capsule: capsule, coral: coral)
+                    .ignoresSafeArea()
+                    .onDisappear {
+                        capsule.discard()
+                    }
+                Group {
+                    if coral != nil {
+                        Image(uiImage: UIImage(data: coral!.imageData)!)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: geometry.size.width * 0.3,
+                                   maxHeight: geometry.size.height * 0.5,
+                                   alignment: .topLeading)
+                    } else {
+                        Rectangle()
+                            .foregroundColor(.blue)
+                            .frame(width: geometry.size.width * 0.3,
+                                   height: geometry.size.height * 0.3)
+                    }
+                }
+                .padding()
             }
+            .navigationBarTitleDisplayMode(.inline)
+        }
     }
 }
 
 private struct ARViewRepresentable: UIViewRepresentable {
     let capsule: Capsule
-    @Binding var selectCoral: Int
+    let coral: LocalCoral?
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
     
     func makeUIView(context: Context) -> ARView {
-        let data = UserDefaults().data(forKey: "localCorals/\(selectCoral)")!
-        let arView = capsule.make(data: data)
+#if targetEnvironment(simulator)
+        return ARView(frame: .zero)
+#else
+        let arView = capsule.make(coral: coral!)
         arView.session.delegate = context.coordinator
         return arView
+#endif
     }
     
     func updateUIView(_ uiView: ARView, context: Context) {}
@@ -56,10 +80,8 @@ private class Capsule: ARViewCapsule {
     private var localizing = true
     private var saveAnchor: SaveAnchor?
     
-    func make(data: Data) -> ARView {
-        let localCoral = try! NSKeyedUnarchiver.unarchivedObject(
-            ofClass: LocalCoral.self, from: data)!
-        let initialWorldMap = localCoral.armap
+    func make(coral: LocalCoral) -> ARView {
+        let initialWorldMap = coral.armap
         if let first = initialWorldMap.anchors.first {
             saveAnchor = SaveAnchor(anchor: first)
         }
@@ -88,6 +110,6 @@ private class Capsule: ARViewCapsule {
 
 struct ARLocalView_Previews: PreviewProvider {
     static var previews: some View {
-        ARLocalView(selectCoral: .constant(0))
+        ARLocalView(coral: .constant(nil))
     }
 }

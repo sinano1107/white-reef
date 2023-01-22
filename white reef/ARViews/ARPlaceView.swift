@@ -151,7 +151,8 @@ private class Capsule: ARViewCapsule {
                 guard let coordinate = CLLocationManager().location?.coordinate else { fatalError("位置情報が不明") }
                 
                 // コーラルを生成してアーカイブ
-                let newCoral = LocalCoral(index: index, coordinator: coordinate, armap: worldMap)
+                guard let newCoral = LocalCoral(capturing: self.arView!, index: index, coordinator: coordinate, armap: worldMap)
+                else { fatalError("コーラルの生成に失敗") }
                 let archivedCoral = try NSKeyedArchiver.archivedData(withRootObject: newCoral, requiringSecureCoding: true)
                 
                 // 保存
