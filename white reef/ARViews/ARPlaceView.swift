@@ -10,6 +10,13 @@ import RealityKit
 import ARKit
 import ARCore
 
+private let kHorizontalAccuracyLowThreshold: CLLocationAccuracy = 10
+private let kHorizontalAccuracyHighThreshold: CLLocationAccuracy = 20
+private let kOrientationYawAccuracyLowThreshold: CLLocationDirectionAccuracy = 15
+private let kOrientationYawAccuracyHighThreshold: CLLocationDirectionAccuracy = 25
+/// 十分な精度が得られない場合、アプリが諦めるまでの時間。
+private let kLocalizationFailureTime = 60.0 * 3
+
 struct ARPlaceView: View {
     @AppStorage("localCoralCount") private var localCoralCount = 0
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus = .notAvailable
@@ -82,6 +89,8 @@ private struct ARViewRepresentable: UIViewRepresentable {
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
             // ワールドマッピングステータスを更新
             parent.worldMapingStatus = frame.worldMappingStatus
+            // GARSessionのupdateを行う
+            parent.capsule.updateGARSession(frame: frame)
         }
     }
 }
@@ -90,6 +99,8 @@ private class Capsule: ARViewCapsule {
     private var garSession: GARSession?
     private var localizationState: LocalizationState = .failed
     private var lastStartLocalizationData = Date()
+    private var bestAccuracy: CLLocationAccuracy = 100
+    private var bestCoordinate: CLLocationCoordinate2D?
     private var anchor = AnchorEntity()
     private var object = ModelEntity()
     let objectData: ObjectData
@@ -234,10 +245,92 @@ private class Capsule: ARViewCapsule {
         
     }
     
-    /// GeospatialAPIによる永続化
-//    func globalSave() {
-//
-//    }
+    /// ARFrameをgarSessionに提供し、各種更新処理を行います
+    func updateGARSession(frame: ARFrame) {
+        if localizationState == .failed { return }
+        guard let garSession = garSession else { return }
+        do {
+            let garFrame = try garSession.update(frame)
+            updateLocalizationState(garFrame)
+            saveObjectCoordinate(garFrame)
+        } catch {
+            fatalError("garFrameのアップデートに失敗: \(error)")
+        }
+    }
+    
+    /// ローカライゼーションステータスを適切に更新します
+    func updateLocalizationState(_ garFrame: GARFrame) {
+        // トラッキングを行なっていない場合はnilとなる
+        let geospatialTransform = garFrame.earth?.cameraGeospatialTransform
+        let now = Date()
+        
+        // earthStateが有効でなければ失敗
+        if garFrame.earth?.earthState != .enabled {
+            localizationState = .failed
+        }
+        
+        // トラッキングできていなければ.pretrackingに設定
+        else if garFrame.earth?.trackingState != .tracking {
+            localizationState = .pretracking
+        }
+        
+        // トラッキング中の処理
+        else {
+            
+            // .pretracking => .localizing
+            if localizationState == .pretracking {
+                localizationState = .localizing
+            }
+            
+            // ローカライズ中の処理
+            else if localizationState == .localizing {
+                // 閾値を下回れば.localizing => .localized
+                if (
+                    geospatialTransform != nil
+                    && geospatialTransform!.horizontalAccuracy <= kHorizontalAccuracyLowThreshold
+                    && geospatialTransform!.orientationYawAccuracy <= kOrientationYawAccuracyLowThreshold
+                ) {
+                    localizationState = .localized
+                }
+                
+                // .localizingになってから指定時間経過したら.failed
+                else if now.timeIntervalSince(lastStartLocalizationData) >= kLocalizationFailureTime {
+                    localizationState = .failed
+                }
+            }
+            
+            // ローカライズ完了時の処理
+            else {
+                // 閾値を上回れば、.localized => .localizing
+                if (
+                    geospatialTransform == nil
+                    || geospatialTransform!.horizontalAccuracy > kHorizontalAccuracyHighThreshold
+                    || geospatialTransform!.orientationYawAccuracy > kOrientationYawAccuracyHighThreshold
+                ) {
+                    localizationState = .localizing
+                    lastStartLocalizationData = now
+                }
+            }
+        }
+    }
+    
+    /// 精度が最も良いものだった時にObjectの座標を算出し保存する
+    func saveObjectCoordinate(_ frame: GARFrame) {
+        guard
+            let garSession = garSession,
+            localizationState == .localized,
+            anchor.isAnchored,
+            let accuracy =
+                frame.earth?.cameraGeospatialTransform?.horizontalAccuracy
+        else { return }
+        
+        if bestAccuracy > accuracy {
+            bestAccuracy = accuracy
+            let objectTransform = object.transformMatrix(relativeTo: nil)
+            let geospatialTransform = try! garSession.geospatialTransform(transform: objectTransform)
+            bestCoordinate = geospatialTransform.coordinate
+        }
+    }
 }
 
 struct ARPlaceView_Previews: PreviewProvider {
