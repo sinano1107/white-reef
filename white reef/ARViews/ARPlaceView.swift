@@ -8,6 +8,7 @@
 import SwiftUI
 import RealityKit
 import ARKit
+import ARCore
 
 struct ARPlaceView: View {
     @AppStorage("localCoralCount") private var localCoralCount = 0
@@ -26,15 +27,20 @@ struct ARPlaceView: View {
                 capsule: capsule,
                 worldMapingStatus: $worldMappingStatus)
             .ignoresSafeArea()
-            Button("ローカルセーブ") {
-                capsule.localSave(index: localCoralCount) { newCoral in
-                    onSaved(newCoral)
-                    localCoralCount += 1
+            HStack {
+                Button("ローカルセーブ") {
+                    capsule.localSave(index: localCoralCount) { newCoral in
+                        onSaved(newCoral)
+                        localCoralCount += 1
+                    }
+                }
+                .disabled(
+                    worldMappingStatus != .mapped
+                    && worldMappingStatus != .extending)
+                Button("グローバルセーブ") {
+                    capsule.setUpGARSession()
                 }
             }
-            .disabled(
-                worldMappingStatus != .mapped
-                && worldMappingStatus != .extending)
         }
         .onDisappear {
             capsule.discard()
@@ -44,6 +50,7 @@ struct ARPlaceView: View {
 
 private struct ARViewRepresentable: UIViewRepresentable {
     let capsule: Capsule
+    let manager = CLLocationManager()
     @Binding var worldMapingStatus: ARFrame.WorldMappingStatus
     
     func makeCoordinator() -> Coordinator {
@@ -52,17 +59,24 @@ private struct ARViewRepresentable: UIViewRepresentable {
     
     func makeUIView(context: Context) -> ARView {
         let arView = capsule.make()
+        manager.delegate = context.coordinator
         arView.session.delegate = context.coordinator
         return arView
     }
     
     func updateUIView(_ uiView: ARView, context: Context) {}
     
-    class Coordinator: NSObject, ARSessionDelegate {
+    class Coordinator: NSObject, CLLocationManagerDelegate, ARSessionDelegate {
         let parent: ARViewRepresentable
         
         init(_ parent: ARViewRepresentable) {
             self.parent = parent
+        }
+        
+        /// 位置情報が更新された時
+        func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+            guard let location = locations.last else { return }
+            parent.capsule.checkVPSAvailability(location.coordinate)
         }
         
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
@@ -73,6 +87,9 @@ private struct ARViewRepresentable: UIViewRepresentable {
 }
 
 private class Capsule: ARViewCapsule {
+    private var garSession: GARSession?
+    private var localizationState: LocalizationState = .failed
+    private var lastStartLocalizationData = Date()
     private var anchor = AnchorEntity()
     private var object = ModelEntity()
     let objectData: ObjectData
@@ -169,6 +186,58 @@ private class Capsule: ARViewCapsule {
             }
         }
     }
+    
+    /// GeospatialAPIのローカライゼーションステータス
+    enum LocalizationState: Int {
+        case pretracking = 0
+        case localizing = 1
+        case localized = 2
+        case failed = -1
+    }
+    
+    /// GARSessionをセットアップします
+    func setUpGARSession() {
+        // すでにGARSessionが作成されているならば離脱
+        if garSession != nil { return }
+        
+        // garSessionを作成
+        garSession = try! GARSession(apiKey: apiKey, bundleIdentifier: nil)
+        
+        // アンラップ
+        guard let garSession = garSession else { return }
+        
+        // GeospatialModeがサポートされているか確認
+        if !garSession.isGeospatialModeSupported(.enabled) {
+            fatalError("GARGeospatialModeEnabledは、このデバイスではサポートされていません。")
+        }
+        
+        /// config
+        let config = GARSessionConfiguration()
+        config.geospatialMode = .enabled
+        
+        // configをセット
+        var error: NSError?
+        garSession.setConfiguration(config, error: &error)
+        if (error != nil) {
+            fatalError("GARSessionの設定に失敗しました: \(error!.code)")
+        }
+        
+        // .failed => .pretracking
+        localizationState = .pretracking
+        
+        // スタートタイムに現在時刻を代入
+        lastStartLocalizationData = Date()
+    }
+    
+    /// 位置情報からVPSが利用可能かチェックします
+    func checkVPSAvailability(_ coordinate: CLLocationCoordinate2D) {
+        
+    }
+    
+    /// GeospatialAPIによる永続化
+//    func globalSave() {
+//
+//    }
 }
 
 struct ARPlaceView_Previews: PreviewProvider {
