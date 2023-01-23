@@ -18,6 +18,7 @@ private let kOrientationYawAccuracyHighThreshold: CLLocationDirectionAccuracy = 
 private let kLocalizationFailureTime = 60.0 * 3
 
 struct ARPlaceView: View {
+    @Environment(\.dismiss) var dismiss
     @AppStorage("localCoralCount") private var localCoralCount = 0
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus = .notAvailable
     private let capsule: Capsule
@@ -39,6 +40,7 @@ struct ARPlaceView: View {
                     capsule.localSave(index: localCoralCount) { newCoral in
                         onSaved(newCoral)
                         localCoralCount += 1
+                        dismiss()
                     }
                 }
                 .disabled(
