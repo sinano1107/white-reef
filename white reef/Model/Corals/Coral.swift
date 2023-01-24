@@ -27,9 +27,9 @@ class Coral: NSObject, NSSecureCoding {
     }
     
     required init?(coder: NSCoder) {
-        self.index = coder.decodeInteger(forKey: Self.indexKey)
-        self.latitude = coder.decodeDouble(forKey: Self.latitudeKey)
-        self.longitude = coder.decodeDouble(forKey: Self.longitudeKey)
+        index = coder.decodeInteger(forKey: Self.indexKey)
+        latitude = coder.decodeDouble(forKey: Self.latitudeKey)
+        longitude = coder.decodeDouble(forKey: Self.longitudeKey)
     }
     
     func encode(with coder: NSCoder) {

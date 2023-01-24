@@ -5,7 +5,6 @@
 //  Created by 長政輝 on 2023/01/20.
 //
 
-import CoreLocation
 import ARKit
 import RealityKit
 

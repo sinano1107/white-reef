@@ -19,6 +19,7 @@
 		9F56426429751EF300695A6D /* SaveAnchor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F56426329751EF300695A6D /* SaveAnchor.swift */; };
 		9F7EB075297BF968008D41D3 /* CoralAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EB074297BF968008D41D3 /* CoralAnnotation.swift */; };
 		9F7EB07C297F8004008D41D3 /* Coral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EB07B297F8004008D41D3 /* Coral.swift */; };
+		9F7EB07E297F8F43008D41D3 /* GlobalCoral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EB07D297F8F43008D41D3 /* GlobalCoral.swift */; };
 		9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */; };
 		9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */; };
 		9FCD566E297A5F620003E4AC /* ARLocalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FCD566D297A5F620003E4AC /* ARLocalView.swift */; };
@@ -52,6 +53,7 @@
 		9F56426329751EF300695A6D /* SaveAnchor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveAnchor.swift; sourceTree = "<group>"; };
 		9F7EB074297BF968008D41D3 /* CoralAnnotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoralAnnotation.swift; sourceTree = "<group>"; };
 		9F7EB07B297F8004008D41D3 /* Coral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coral.swift; sourceTree = "<group>"; };
+		9F7EB07D297F8F43008D41D3 /* GlobalCoral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalCoral.swift; sourceTree = "<group>"; };
 		9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistanceView.swift; sourceTree = "<group>"; };
 		9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialView.swift; sourceTree = "<group>"; };
 		9FCD566D297A5F620003E4AC /* ARLocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARLocalView.swift; sourceTree = "<group>"; };
@@ -171,6 +173,7 @@
 			children = (
 				9F7EB07B297F8004008D41D3 /* Coral.swift */,
 				9FD49021297A846900EFA001 /* LocalCoral.swift */,
+				9F7EB07D297F8F43008D41D3 /* GlobalCoral.swift */,
 			);
 			path = Corals;
 			sourceTree = "<group>";
@@ -364,6 +367,7 @@
 				9F7EB075297BF968008D41D3 /* CoralAnnotation.swift in Sources */,
 				9F56425A29713C2200695A6D /* CollisionDetection.swift in Sources */,
 				9F43CEF4295D982A00ABB3B0 /* AppDelegate.swift in Sources */,
+				9F7EB07E297F8F43008D41D3 /* GlobalCoral.swift in Sources */,
 				9FFFCB862977A33100071897 /* ARPlaceView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
