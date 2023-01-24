@@ -21,6 +21,10 @@ struct ARPlaceView: View {
     @Environment(\.dismiss) var dismiss
     @AppStorage("localCoralCount") private var localCoralCount = 0
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus = .notAvailable
+    /// グローバルセーブ試行中で出た最も良い結果を表示する
+    @State private var bestResultText = ""
+    /// グローバルセーブ中かどうか
+    @State private var globalSaving = false
     private let capsule: Capsule
     let onSaved: (_ newCoral: LocalCoral) -> Void
     
@@ -30,26 +34,43 @@ struct ARPlaceView: View {
     }
     
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
+        ZStack(alignment: .leading) {
             ARViewRepresentable(
                 capsule: capsule,
                 worldMapingStatus: $worldMappingStatus)
             .ignoresSafeArea()
-            HStack {
-                Button("ローカルセーブ") {
-                    capsule.localSave(index: localCoralCount) { newCoral in
-                        onSaved(newCoral)
-                        localCoralCount += 1
-                        dismiss()
+            VStack(alignment: .leading) {
+                Text(bestResultText)
+                        .foregroundColor(.white)
+                Spacer()
+                HStack {
+                    Button("ローカルセーブ") {
+                        capsule.localSave(index: localCoralCount) { newCoral in
+                            onSaved(newCoral)
+                            localCoralCount += 1
+                            dismiss()
+                        }
                     }
-                }
-                .disabled(
-                    worldMappingStatus != .mapped
-                    && worldMappingStatus != .extending)
-                Button("グローバルセーブ") {
-                    capsule.setUpGARSession()
+                    .disabled(
+                        worldMappingStatus != .mapped
+                        && worldMappingStatus != .extending)
+                    Button("グローバルセーブ開始") {
+                        globalSaving = true
+                        bestResultText = "グローバルセーブ開始"
+                        capsule.startGlobalSave { accuracy, coordinate in
+                            bestResultText = "精度: \(accuracy)\n座標: (\(coordinate.latitude), \(coordinate.longitude))"
+                        }
+                    }
+                    .disabled(globalSaving)
+                    Button("グローバルセーブ終了") {
+                        globalSaving = false
+                        let (bestAccuracy, bestCoordinate) = capsule.endGlobalSave()
+                        bestResultText = "グローバルセーブ終了 \n 精度: \(bestAccuracy) \n 座標: (\(bestCoordinate?.latitude ?? 0), \(bestCoordinate?.longitude ?? 0))"
+                    }
+                    .disabled(!globalSaving)
                 }
             }
+            .padding()
         }
         .onDisappear {
             capsule.discard()
@@ -103,6 +124,7 @@ private class Capsule: ARViewCapsule {
     private var lastStartLocalizationData = Date()
     private var bestAccuracy: CLLocationAccuracy = 100
     private var bestCoordinate: CLLocationCoordinate2D?
+    private var bestUpdated: (_ accuracy: CLLocationAccuracy, _ coordinate: CLLocationCoordinate2D) -> Void = { _, _ in }
     private var anchor = AnchorEntity()
     private var object = ModelEntity()
     let objectData: ObjectData
@@ -198,6 +220,18 @@ private class Capsule: ARViewCapsule {
                 fatalError("[エラー] mapの保存に失敗: \(error)")
             }
         }
+    }
+    
+    /// GeospatialAPIによる永続化を開始
+    func startGlobalSave(_ updated: @escaping (_ accuracy: CLLocationAccuracy, _ coordinate: CLLocationCoordinate2D) -> Void) {
+        setUpGARSession()
+        bestUpdated = updated
+    }
+    
+    /// GeospatialAPIによる永続化を終了
+    func endGlobalSave() -> (accuracy: CLLocationAccuracy, coordinate: CLLocationCoordinate2D?) {
+        garSession = nil
+        return (bestAccuracy, bestCoordinate)
     }
     
     /// GeospatialAPIのローカライゼーションステータス
@@ -333,6 +367,8 @@ private class Capsule: ARViewCapsule {
             let objectTransform = object.transformMatrix(relativeTo: nil)
             let geospatialTransform = try! garSession.geospatialTransform(transform: objectTransform)
             bestCoordinate = geospatialTransform.coordinate
+            // ベスト精度更新時のコールバックを実行
+            bestUpdated(bestAccuracy, bestCoordinate!)
         }
     }
 }
