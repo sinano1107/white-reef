@@ -11,7 +11,7 @@ import MapKit
 
 struct ContentView : View {
     private let objectData = ObjectData.sample
-    @State private var newCoral: LocalCoral?
+    @State private var newCoral: Coral?
     @State private var selectCoral: LocalCoral?
     @State private var sheetIsPresented = false
     @State private var arIsPresented = false
@@ -51,7 +51,7 @@ struct ContentView : View {
 }
 
 struct MapContainer: UIViewRepresentable {
-    @Binding var newCoral: LocalCoral?
+    @Binding var newCoral: Coral?
     let handleSelect: (_ index: Int) -> Void
     let defaults = UserDefaults()
     let manager = CLLocationManager()
@@ -116,20 +116,20 @@ struct MapContainer: UIViewRepresentable {
     func updateUIView(_ uiView: UIViewType, context: Context) {
         let coordinator = context.coordinator
         guard let coral = newCoral else { return }
-        if coordinator.prevSavedIndex == coral.index {
+        if coordinator.prevCoral == coral {
             print("このコーラルはマップに追加済みなのでスキップします");
             return
         }
-        let annotation = CoralAnnotation(index: coral.index, type: .local)
+        let annotation = CoralAnnotation(index: coral.index, coral: coral)
         annotation.coordinate = coral.coordinator
         view.addAnnotation(annotation)
-        coordinator.prevSavedIndex = coral.index
+        coordinator.prevCoral = coral
         print("追加しました: \(coral.latitude), \(coral.longitude)")
     }
     
     class Coordinator: NSObject, MKMapViewDelegate {
         let parent: MapContainer
-        var prevSavedIndex: Int?
+        var prevCoral: Coral?
         
         init(_ parent: MapContainer) {
             self.parent = parent

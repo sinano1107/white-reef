@@ -21,4 +21,9 @@ class CoralAnnotation: MKPointAnnotation {
         self.type = type
         super.init()
     }
+    
+    convenience init(index: Int, coral: Coral) {
+        let type: CoralType = coral is LocalCoral ? .local : .global
+        self.init(index: index, type: type)
+    }
 }

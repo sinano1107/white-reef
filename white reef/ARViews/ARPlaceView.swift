@@ -29,9 +29,9 @@ struct ARPlaceView: View {
     /// グローバルセーブ中かどうか
     @State private var globalSaving = false
     private let capsule: Capsule
-    let onSaved: (_ newCoral: LocalCoral) -> Void
+    let onSaved: (_ newCoral: Coral) -> Void
     
-    init(objectData: ObjectData, onSaved: @escaping (_ newCoral: LocalCoral) -> Void) {
+    init(objectData: ObjectData, onSaved: @escaping (_ newCoral: Coral) -> Void) {
         capsule = Capsule(objectData: objectData)
         self.onSaved = onSaved
     }
@@ -69,6 +69,7 @@ struct ARPlaceView: View {
                     .disabled(globalSaving)
                     Button("グローバルセーブ終了") {
                         capsule.endGlobalSave(index: globalCoralCount) { newCoral in
+                            onSaved(newCoral)
                             globalCoralCount += 1
                             dismiss()
                         }
