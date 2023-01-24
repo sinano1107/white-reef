@@ -91,7 +91,7 @@ struct MapContainer: UIViewRepresentable {
         for index in 0 ..< localCoralCount {
             let coral = unarchiveCoral(index: index)
             /// アノテーション
-            let annotation = CoralAnnotation(index: index)
+            let annotation = CoralAnnotation(index: index, type: .local)
             annotation.coordinate = coral.coordinator
             view.addAnnotation(annotation)
             print("ローカルコーラル復元しました: \(coral.latitude), \(coral.longitude)")
@@ -104,7 +104,7 @@ struct MapContainer: UIViewRepresentable {
         for index in 0 ..< globalCoralCount {
             let coral = GlobalCoral.unarchive(index: index)
             /// アノテーション
-            let annotation = CoralAnnotation(index: index)
+            let annotation = CoralAnnotation(index: index, type: .global)
             annotation.coordinate = coral.coordinator
             view.addAnnotation(annotation)
             print("グローバルコーラル復元しました: \(coral.latitude), \(coral.longitude)")
@@ -120,7 +120,7 @@ struct MapContainer: UIViewRepresentable {
             print("このコーラルはマップに追加済みなのでスキップします");
             return
         }
-        let annotation = CoralAnnotation(index: coral.index)
+        let annotation = CoralAnnotation(index: coral.index, type: .local)
         annotation.coordinate = coral.coordinator
         view.addAnnotation(annotation)
         coordinator.prevSavedIndex = coral.index
@@ -133,6 +133,25 @@ struct MapContainer: UIViewRepresentable {
         
         init(_ parent: MapContainer) {
             self.parent = parent
+        }
+        
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            if annotation is MKUserLocation { return nil }
+            guard annotation is CoralAnnotation else { return nil }
+            let annotation = annotation as! CoralAnnotation
+            
+            let identifier = "annotation"
+            if let annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) {
+                annotationView.annotation = annotation
+                return annotationView
+            } else {
+                let annotationView = MKMarkerAnnotationView(
+                    annotation: annotation,
+                    reuseIdentifier: identifier
+                )
+                annotationView.markerTintColor = annotation.type == .local ? .red : .cyan
+                return annotationView
+            }
         }
         
         func mapView(_ mapView: MKMapView, didSelect annotation: MKAnnotation) {

@@ -8,10 +8,17 @@
 import MapKit
 
 class CoralAnnotation: MKPointAnnotation {
-    var index: Int
+    private (set) var index: Int
+    private (set) var type: CoralType
     
-    init(index: Int) {
+    enum CoralType {
+        case local
+        case global
+    }
+    
+    init(index: Int, type: CoralType) {
         self.index = index
+        self.type = type
         super.init()
     }
 }
