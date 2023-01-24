@@ -63,10 +63,7 @@ extension CGImagePropertyOrientation {
     }
 }
 
-func unarchiveCoral(index: Int) -> LocalCoral {
-    let key = "localCorals/\(index)"
-    guard let data = UserDefaults().data(forKey: key) else { fatalError("データがない") }
-    guard let coral = try! NSKeyedUnarchiver.unarchivedObject(ofClass: LocalCoral.self, from: data)
-    else { fatalError("coralがnil") }
-    return coral
+enum CoralType {
+    case local
+    case global
 }

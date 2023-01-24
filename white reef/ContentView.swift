@@ -12,16 +12,23 @@ import MapKit
 struct ContentView : View {
     private let objectData = ObjectData.sample
     @State private var newCoral: Coral?
-    @State private var selectCoral: LocalCoral?
+    @State private var selectLocalCoral: LocalCoral?
+    @State private var selectGlobalCoral: GlobalCoral?
     @State private var sheetIsPresented = false
     @State private var arIsPresented = false
     @State private var localIsPresented = false
+    @State private var globalIsPresented = false
     
     var body: some View {
         NavigationStack {
-            MapContainer(newCoral: $newCoral) { index in
-                selectCoral = unarchiveCoral(index: index)
-                localIsPresented = true
+            MapContainer(newCoral: $newCoral) { index, type in
+                if type == .local {
+                    localIsPresented = true
+                    selectLocalCoral = LocalCoral.unarchive(index: index)
+                } else {
+                    globalIsPresented = true
+                    selectGlobalCoral = GlobalCoral.unarchive(index: index)
+                }
             }
             .ignoresSafeArea()
             .navigationTitle("White Reef")
@@ -31,7 +38,10 @@ struct ContentView : View {
                 }
             }
             .navigationDestination(isPresented: $localIsPresented) {
-                ARLocalView(coral: $selectCoral)
+                ARLocalView(coral: $selectLocalCoral)
+            }
+            .navigationDestination(isPresented: $globalIsPresented) {
+                Text("グローバルARを表示する")
             }
             .toolbar {
                 ToolbarItem(placement: .bottomBar) {
@@ -52,7 +62,7 @@ struct ContentView : View {
 
 struct MapContainer: UIViewRepresentable {
     @Binding var newCoral: Coral?
-    let handleSelect: (_ index: Int) -> Void
+    let handleSelect: (_ index: Int, _ type: CoralType) -> Void
     let defaults = UserDefaults()
     let manager = CLLocationManager()
     let view = MKMapView()
@@ -89,7 +99,7 @@ struct MapContainer: UIViewRepresentable {
         
         // ローカルコーラルの復元
         for index in 0 ..< localCoralCount {
-            let coral = unarchiveCoral(index: index)
+            let coral = LocalCoral.unarchive(index: index)
             /// アノテーション
             let annotation = CoralAnnotation(index: index, type: .local)
             annotation.coordinate = coral.coordinator
@@ -156,7 +166,7 @@ struct MapContainer: UIViewRepresentable {
         
         func mapView(_ mapView: MKMapView, didSelect annotation: MKAnnotation) {
             guard let coralAnnotation = annotation as? CoralAnnotation else { return }
-            parent.handleSelect(coralAnnotation.index)
+            parent.handleSelect(coralAnnotation.index, coralAnnotation.type)
         }
     }
 }

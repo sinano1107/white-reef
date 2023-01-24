@@ -57,4 +57,12 @@ class LocalCoral: Coral {
         coder.encode(armap, forKey: Self.armapKey)
         coder.encode(imageData, forKey: Self.imageDataKey)
     }
+    
+    static func unarchive(index: Int) -> LocalCoral {
+        let key = "localCorals/\(index)"
+        guard let data = UserDefaults().data(forKey: key) else { fatalError("データがない") }
+        guard let coral = try! NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: data)
+        else { fatalError("coralがnil") }
+        return coral
+    }
 }
