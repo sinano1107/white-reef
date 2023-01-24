@@ -73,4 +73,12 @@ class GlobalCoral: Coral {
         coder.encode(z, forKey: Self.zKey)
         coder.encode(w, forKey: Self.wKey)
     }
+    
+    static func unarchive(index: Int) -> GlobalCoral {
+        let key = "globalCorals/\(index)"
+        guard let data = UserDefaults().data(forKey: key) else { fatalError("データがない") }
+        guard let coral = try! NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: data)
+        else { fatalError("coralがnil") }
+        return coral
+    }
 }

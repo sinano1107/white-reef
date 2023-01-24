@@ -94,7 +94,20 @@ struct MapContainer: UIViewRepresentable {
             let annotation = CoralAnnotation(index: index)
             annotation.coordinate = coral.coordinator
             view.addAnnotation(annotation)
-            print("復元しました: \(coral.latitude), \(coral.longitude)")
+            print("ローカルコーラル復元しました: \(coral.latitude), \(coral.longitude)")
+        }
+        
+        // グローバルコーラルの個数
+        let globalCoralCount = defaults.integer(forKey: "globalCoralCount")
+        
+        // グローバルコーラルの復元
+        for index in 0 ..< globalCoralCount {
+            let coral = GlobalCoral.unarchive(index: index)
+            /// アノテーション
+            let annotation = CoralAnnotation(index: index)
+            annotation.coordinate = coral.coordinator
+            view.addAnnotation(annotation)
+            print("グローバルコーラル復元しました: \(coral.latitude), \(coral.longitude)")
         }
         
         return view
