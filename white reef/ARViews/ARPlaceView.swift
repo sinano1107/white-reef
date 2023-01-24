@@ -21,6 +21,8 @@ struct ARPlaceView: View {
     @Environment(\.dismiss) var dismiss
     @AppStorage("localCoralCount") private var localCoralCount = 0
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus = .notAvailable
+    /// グローバルセーブのステータス
+    @State private var localizationState: Capsule.LocalizationState?
     /// グローバルセーブ試行中で出た最も良い結果を表示する
     @State private var bestResultText = ""
     /// グローバルセーブ中かどうか
@@ -40,8 +42,8 @@ struct ARPlaceView: View {
                 worldMapingStatus: $worldMappingStatus)
             .ignoresSafeArea()
             VStack(alignment: .leading) {
+                Text(localizationState?.description ?? "")
                 Text(bestResultText)
-                        .foregroundColor(.white)
                 Spacer()
                 HStack {
                     Button("ローカルセーブ") {
@@ -57,7 +59,9 @@ struct ARPlaceView: View {
                     Button("グローバルセーブ開始") {
                         globalSaving = true
                         bestResultText = "グローバルセーブ開始"
-                        capsule.startGlobalSave { accuracy, coordinate in
+                        capsule.startGlobalSave { state in
+                            localizationState = state
+                        } _: { accuracy, coordinate in
                             bestResultText = "精度: \(accuracy)\n座標: (\(coordinate.latitude), \(coordinate.longitude))"
                         }
                     }
@@ -120,10 +124,16 @@ private struct ARViewRepresentable: UIViewRepresentable {
 
 private class Capsule: ARViewCapsule {
     private var garSession: GARSession?
-    private var localizationState: LocalizationState = .failed
+    private var localizationState: LocalizationState = .failed {
+        didSet {
+            // localizationStateが変化した時にstateUpdatedを実行
+            stateUpdated(localizationState)
+        }
+    }
     private var lastStartLocalizationData = Date()
     private var bestAccuracy: CLLocationAccuracy = 100
     private var bestCoordinate: CLLocationCoordinate2D?
+    private var stateUpdated: (_ state: LocalizationState) -> Void = { _ in }
     private var bestUpdated: (_ accuracy: CLLocationAccuracy, _ coordinate: CLLocationCoordinate2D) -> Void = { _, _ in }
     private var anchor = AnchorEntity()
     private var object = ModelEntity()
@@ -223,9 +233,13 @@ private class Capsule: ARViewCapsule {
     }
     
     /// GeospatialAPIによる永続化を開始
-    func startGlobalSave(_ updated: @escaping (_ accuracy: CLLocationAccuracy, _ coordinate: CLLocationCoordinate2D) -> Void) {
+    func startGlobalSave(
+        _ stateUpdated: @escaping (_ state: LocalizationState) -> Void,
+        _ bestUpdated: @escaping (_ accuracy: CLLocationAccuracy, _ coordinate: CLLocationCoordinate2D) -> Void)
+    {
         setUpGARSession()
-        bestUpdated = updated
+        self.stateUpdated = stateUpdated
+        self.bestUpdated = bestUpdated
     }
     
     /// GeospatialAPIによる永続化を終了
@@ -240,6 +254,19 @@ private class Capsule: ARViewCapsule {
         case localizing = 1
         case localized = 2
         case failed = -1
+        
+        public var description: String {
+            switch self {
+            case .pretracking:
+                return "プリトラッキング"
+            case .localizing:
+                return "ローカライズ中"
+            case .localized:
+                return "ローカライズ済み"
+            case .failed:
+                return "失敗"
+            }
+        }
     }
     
     /// GARSessionをセットアップします
