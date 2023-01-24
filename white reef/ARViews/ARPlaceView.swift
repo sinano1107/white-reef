@@ -20,6 +20,7 @@ private let kLocalizationFailureTime = 60.0 * 3
 struct ARPlaceView: View {
     @Environment(\.dismiss) var dismiss
     @AppStorage("localCoralCount") private var localCoralCount = 0
+    @AppStorage("globalCoralCount") private var globalCoralCount = 0
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus = .notAvailable
     /// グローバルセーブのステータス
     @State private var localizationState: Capsule.LocalizationState?
@@ -67,9 +68,10 @@ struct ARPlaceView: View {
                     }
                     .disabled(globalSaving)
                     Button("グローバルセーブ終了") {
-                        globalSaving = false
-                        let (bestAccuracy, bestCoordinate) = capsule.endGlobalSave()
-                        bestResultText = "グローバルセーブ終了 \n 精度: \(bestAccuracy) \n 座標: (\(bestCoordinate?.latitude ?? 0), \(bestCoordinate?.longitude ?? 0))"
+                        capsule.endGlobalSave(index: globalCoralCount) { newCoral in
+                            globalCoralCount += 1
+                            dismiss()
+                        }
                     }
                     .disabled(!globalSaving)
                 }
@@ -132,7 +134,7 @@ private class Capsule: ARViewCapsule {
     }
     private var lastStartLocalizationData = Date()
     private var bestAccuracy: CLLocationAccuracy = 100
-    private var bestCoordinate: CLLocationCoordinate2D?
+    private var bestTransform: GARGeospatialTransform?
     private var stateUpdated: (_ state: LocalizationState) -> Void = { _ in }
     private var bestUpdated: (_ accuracy: CLLocationAccuracy, _ coordinate: CLLocationCoordinate2D) -> Void = { _, _ in }
     private var anchor = AnchorEntity()
@@ -243,9 +245,21 @@ private class Capsule: ARViewCapsule {
     }
     
     /// GeospatialAPIによる永続化を終了
-    func endGlobalSave() -> (accuracy: CLLocationAccuracy, coordinate: CLLocationCoordinate2D?) {
+    func endGlobalSave(index: Int, onSaved: @escaping (_ newCoral: GlobalCoral) -> Void) {
         garSession = nil
-        return (bestAccuracy, bestCoordinate)
+        
+        guard let bestTransform = bestTransform else { return }
+        
+        // コーラルを生成してアーカイブ
+        let newCoral = GlobalCoral(index: index, transform: bestTransform, objectData: objectData)
+        let archivedCoral = try! NSKeyedArchiver.archivedData(withRootObject: newCoral, requiringSecureCoding: true)
+        
+        // 保存
+        let key = "globalCorals/\(index)"
+        UserDefaults().set(archivedCoral, forKey: key)
+        
+        // コールバックを実行
+        onSaved(newCoral)
     }
     
     /// GeospatialAPIのローカライゼーションステータス
@@ -392,10 +406,9 @@ private class Capsule: ARViewCapsule {
         if bestAccuracy > accuracy {
             bestAccuracy = accuracy
             let objectTransform = object.transformMatrix(relativeTo: nil)
-            let geospatialTransform = try! garSession.geospatialTransform(transform: objectTransform)
-            bestCoordinate = geospatialTransform.coordinate
+            bestTransform = try! garSession.geospatialTransform(transform: objectTransform)
             // ベスト精度更新時のコールバックを実行
-            bestUpdated(bestAccuracy, bestCoordinate!)
+            bestUpdated(bestAccuracy, bestTransform!.coordinate)
         }
     }
 }
