@@ -12,23 +12,26 @@ import ARKit
 struct ARLocalView: View {
     private let capsule = Capsule()
     @Binding var coral: LocalCoral?
+    @State private var state: ARCamera.TrackingState = .notAvailable
     
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .topLeading) {
-                ARViewRepresentable(capsule: capsule, coral: coral)
+                ARViewRepresentable(capsule: capsule, coral: coral, state: $state)
                     .ignoresSafeArea()
                     .onDisappear {
                         capsule.discard()
                     }
                 Group {
                     if coral != nil {
-                        Image(uiImage: UIImage(data: coral!.imageData)!)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: geometry.size.width * 0.3,
-                                   maxHeight: geometry.size.height * 0.5,
-                                   alignment: .topLeading)
+                        if state != .normal {
+                            Image(uiImage: UIImage(data: coral!.imageData)!)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: geometry.size.width * 0.3,
+                                       maxHeight: geometry.size.height * 0.5,
+                                       alignment: .topLeading)
+                        }
                     } else {
                         Rectangle()
                             .foregroundColor(.blue)
@@ -46,6 +49,7 @@ struct ARLocalView: View {
 private struct ARViewRepresentable: UIViewRepresentable {
     let capsule: Capsule
     let coral: LocalCoral?
+    @Binding var state: ARCamera.TrackingState
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -71,6 +75,7 @@ private struct ARViewRepresentable: UIViewRepresentable {
         }
         
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
+            parent.state = frame.camera.trackingState
             parent.capsule.reconstruction(trackingState: frame.camera.trackingState)
         }
     }
