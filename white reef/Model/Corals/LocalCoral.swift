@@ -9,23 +9,13 @@ import CoreLocation
 import ARKit
 import RealityKit
 
-class LocalCoral: NSObject, NSSecureCoding {
-    static var supportsSecureCoding: Bool = true
-    
-    static var indexKey = "index"
-    static var latitudeKey = "latitude"
-    static var longitudeKey = "longitude"
+class LocalCoral: Coral {
+    override class var supportsSecureCoding: Bool { true }
     static var armapKey = "armap"
     static var imageDataKey = "imageData"
     
-    let index: Int
-    let latitude: Double
-    let longitude: Double
     let armap: ARWorldMap
     let imageData: Data
-    var coordinator: CLLocationCoordinate2D {
-        CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-    }
     
     convenience init?(capturing view: ARView,
                       index: Int,
@@ -48,11 +38,9 @@ class LocalCoral: NSObject, NSSecureCoding {
     }
     
     init(index: Int, coordinator: CLLocationCoordinate2D, armap: ARWorldMap, imageData: Data) {
-        self.index = index
-        self.latitude = coordinator.latitude
-        self.longitude = coordinator.longitude
         self.armap = armap
         self.imageData = imageData
+        super.init(index: index, coordinator: coordinator)
     }
     
     required init?(coder: NSCoder) {
@@ -60,17 +48,13 @@ class LocalCoral: NSObject, NSSecureCoding {
             let armap = coder.decodeObject(of: ARWorldMap.self, forKey: Self.armapKey),
             let imageData = coder.decodeObject(of: NSData.self, forKey: Self.imageDataKey) as? Data
         else { return nil }
-        self.index = coder.decodeInteger(forKey: Self.indexKey)
-        self.latitude = coder.decodeDouble(forKey: Self.latitudeKey)
-        self.longitude = coder.decodeDouble(forKey: Self.longitudeKey)
         self.armap = armap
         self.imageData = imageData
+        super.init(coder: coder)
     }
     
-    func encode(with coder: NSCoder) {
-        coder.encode(index, forKey: Self.indexKey)
-        coder.encode(latitude, forKey: Self.latitudeKey)
-        coder.encode(longitude, forKey: Self.longitudeKey)
+    override func encode(with coder: NSCoder) {
+        super.encode(with: coder)
         coder.encode(armap, forKey: Self.armapKey)
         coder.encode(imageData, forKey: Self.imageDataKey)
     }
