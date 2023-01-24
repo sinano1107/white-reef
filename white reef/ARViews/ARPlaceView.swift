@@ -244,7 +244,9 @@ private class Capsule: ARViewCapsule {
     
     /// 位置情報からVPSが利用可能かチェックします
     func checkVPSAvailability(_ coordinate: CLLocationCoordinate2D) {
-        
+        garSession?.checkVPSAvailability(coordinate: coordinate) { availability in
+            if availability != .available { fatalError("VPS利用不可") }
+        }
     }
     
     /// ARFrameをgarSessionに提供し、各種更新処理を行います
