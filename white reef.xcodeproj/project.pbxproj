@@ -18,6 +18,7 @@
 		9F56426229737E3D00695A6D /* ObjectData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F56426129737E3D00695A6D /* ObjectData.swift */; };
 		9F56426429751EF300695A6D /* SaveAnchor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F56426329751EF300695A6D /* SaveAnchor.swift */; };
 		9F7EB075297BF968008D41D3 /* CoralAnnotation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EB074297BF968008D41D3 /* CoralAnnotation.swift */; };
+		9F7EB07C297F8004008D41D3 /* Coral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F7EB07B297F8004008D41D3 /* Coral.swift */; };
 		9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */; };
 		9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */; };
 		9FCD566E297A5F620003E4AC /* ARLocalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FCD566D297A5F620003E4AC /* ARLocalView.swift */; };
@@ -50,6 +51,7 @@
 		9F56426129737E3D00695A6D /* ObjectData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectData.swift; sourceTree = "<group>"; };
 		9F56426329751EF300695A6D /* SaveAnchor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveAnchor.swift; sourceTree = "<group>"; };
 		9F7EB074297BF968008D41D3 /* CoralAnnotation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoralAnnotation.swift; sourceTree = "<group>"; };
+		9F7EB07B297F8004008D41D3 /* Coral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coral.swift; sourceTree = "<group>"; };
 		9FAD28FC2967D4A500C0C690 /* PersistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistanceView.swift; sourceTree = "<group>"; };
 		9FAD28FE2967D5BF00C0C690 /* GeospatialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeospatialView.swift; sourceTree = "<group>"; };
 		9FCD566D297A5F620003E4AC /* ARLocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARLocalView.swift; sourceTree = "<group>"; };
@@ -155,13 +157,22 @@
 		9F56426029737E2500695A6D /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				9F7EB078297F7FD6008D41D3 /* Corals */,
 				9F56426129737E3D00695A6D /* ObjectData.swift */,
 				9F56426329751EF300695A6D /* SaveAnchor.swift */,
 				9FD4901F297A60FD00EFA001 /* ARVIewCapsule.swift */,
-				9FD49021297A846900EFA001 /* LocalCoral.swift */,
 				9F7EB074297BF968008D41D3 /* CoralAnnotation.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		9F7EB078297F7FD6008D41D3 /* Corals */ = {
+			isa = PBXGroup;
+			children = (
+				9F7EB07B297F8004008D41D3 /* Coral.swift */,
+				9FD49021297A846900EFA001 /* LocalCoral.swift */,
+			);
+			path = Corals;
 			sourceTree = "<group>";
 		};
 		9FD9899B296FD684008008E6 /* RandomObject */ = {
@@ -338,6 +349,7 @@
 				9FAD28FF2967D5BF00C0C690 /* GeospatialView.swift in Sources */,
 				9FD49020297A60FD00EFA001 /* ARVIewCapsule.swift in Sources */,
 				9FAD28FD2967D4A500C0C690 /* PersistanceView.swift in Sources */,
+				9F7EB07C297F8004008D41D3 /* Coral.swift in Sources */,
 				9FD989A6297043B0008008E6 /* CalcCircumcenter.swift in Sources */,
 				9FD989A229704206008008E6 /* GenerateRandomObject.swift in Sources */,
 				9FEF2B9029607B9700EF759E /* Utilities.swift in Sources */,
