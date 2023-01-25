@@ -22,6 +22,9 @@ class GlobalCoral: Coral {
     let y: Float
     let z: Float
     let w: Float
+    var eastUpSouthQTarget: simd_quatf {
+        simd_quaternion(x, y, z, w)
+    }
     
     convenience init(
         index: Int,
@@ -45,6 +48,7 @@ class GlobalCoral: Coral {
         objectData: ObjectData
     ) {
         self.objectData = objectData
+        print(altitude)
         self.altitude = altitude
         self.x = eastUpSouthQTarget.x
         self.y = eastUpSouthQTarget.y
@@ -68,6 +72,7 @@ class GlobalCoral: Coral {
     override func encode(with coder: NSCoder) {
         super.encode(with: coder)
         coder.encode(objectData, forKey: Self.objectDataKey)
+        coder.encode(altitude, forKey: Self.altitudeKey)
         coder.encode(x, forKey: Self.xKey)
         coder.encode(y, forKey: Self.yKey)
         coder.encode(z, forKey: Self.zKey)
