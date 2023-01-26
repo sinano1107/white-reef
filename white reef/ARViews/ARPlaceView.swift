@@ -8,7 +8,7 @@
 import SwiftUI
 import RealityKit
 import ARKit
-import ARCore
+import ARCoreGeospatial
 
 private let kHorizontalAccuracyLowThreshold: CLLocationAccuracy = 10
 private let kHorizontalAccuracyHighThreshold: CLLocationAccuracy = 20

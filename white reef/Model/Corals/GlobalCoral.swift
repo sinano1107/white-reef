@@ -5,7 +5,7 @@
 //  Created by 長政輝 on 2023/01/24.
 //
 
-import ARCore
+import ARCoreGeospatial
 
 class GlobalCoral: Coral {
     override class var supportsSecureCoding: Bool { true }
