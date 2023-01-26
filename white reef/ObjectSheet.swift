@@ -9,6 +9,8 @@ import SwiftUI
 import RealityKit
 
 struct ObjectSheet: View {
+    @AppStorage("localCoralCount") private var localCoralCount = 0
+    @AppStorage("globalCoralCount") private var globalCoralCount = 0
     @Environment(\.dismiss) var dismiss
     @State private var model = ObjectData.sample.generate()
     @Binding var arIsPresented: Bool
@@ -20,6 +22,10 @@ struct ObjectSheet: View {
                 .ignoresSafeArea()
             VStack {
                 HStack {
+                    Button("リセット") {
+                        localCoralCount = 0
+                        globalCoralCount = 0
+                    }
                     Spacer()
                     Button(action: {
                         setModel()
