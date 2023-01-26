@@ -41,7 +41,7 @@ struct ContentView : View {
                 ARLocalView(coral: $selectLocalCoral)
             }
             .navigationDestination(isPresented: $globalIsPresented) {
-                Text("グローバルARを表示する")
+                ARGlobalView(coral: $selectGlobalCoral)
             }
             .toolbar {
                 ToolbarItem(placement: .bottomBar) {
