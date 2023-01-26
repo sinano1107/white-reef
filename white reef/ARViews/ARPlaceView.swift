@@ -23,7 +23,7 @@ struct ARPlaceView: View {
     @AppStorage("globalCoralCount") private var globalCoralCount = 0
     @State private var worldMappingStatus: ARFrame.WorldMappingStatus = .notAvailable
     /// グローバルセーブのステータス
-    @State private var localizationState: Capsule.LocalizationState?
+    @State private var localizationState: LocalizationState?
     /// グローバルセーブ試行中で出た最も良い結果を表示する
     @State private var bestResultText = ""
     /// グローバルセーブ中かどうか
@@ -261,27 +261,6 @@ private class Capsule: ARViewCapsule {
         
         // コールバックを実行
         onSaved(newCoral)
-    }
-    
-    /// GeospatialAPIのローカライゼーションステータス
-    enum LocalizationState: Int {
-        case pretracking = 0
-        case localizing = 1
-        case localized = 2
-        case failed = -1
-        
-        public var description: String {
-            switch self {
-            case .pretracking:
-                return "プリトラッキング"
-            case .localizing:
-                return "ローカライズ中"
-            case .localized:
-                return "ローカライズ済み"
-            case .failed:
-                return "失敗"
-            }
-        }
     }
     
     /// GARSessionをセットアップします

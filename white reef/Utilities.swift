@@ -67,3 +67,24 @@ enum CoralType {
     case local
     case global
 }
+
+/// GeospatialAPIのローカライゼーションステータス
+enum LocalizationState: Int {
+    case pretracking = 0
+    case localizing = 1
+    case localized = 2
+    case failed = -1
+    
+    public var description: String {
+        switch self {
+        case .pretracking:
+            return "プリトラッキング"
+        case .localizing:
+            return "ローカライズ中"
+        case .localized:
+            return "ローカライズ済み"
+        case .failed:
+            return "失敗"
+        }
+    }
+}
